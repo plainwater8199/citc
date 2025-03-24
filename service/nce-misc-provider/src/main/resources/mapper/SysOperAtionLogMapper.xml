@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.misc.operationlog.mapper.SysOperationLogMapper">
+
+
+    <insert id="insertByTabName">
+        insert into ${tableName} (`oper_id`, `title`, `business_type`, `method`, `request_method`, `operator_type`, `oper_name`, `oper_url`, `oper_ip`, `oper_param`, `json_result`, `status`, `error_msg`, `oper_time`)
+        VALUES (#{log.operId}, #{log.title}, #{log.businessType}, #{log.method}, #{log.requestMethod},#{log.operatorType}, #{log.operName}, #{log.operUrl}, #{log.operIp}, #{log.operParam}, #{log.jsonResult}, #{log.status}, #{log.errorMsg}, #{log.operTime});
+    </insert>
+</mapper>

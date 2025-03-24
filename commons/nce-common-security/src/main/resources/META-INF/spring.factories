@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.citc.nce.security.aspect.HasCspAspect,\
+  com.citc.nce.conf.CommonKeyPairConfig

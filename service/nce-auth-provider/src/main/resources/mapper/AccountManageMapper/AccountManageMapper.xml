@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.accountmanagement.dao.AccountManagementMapper">
+    <select id="queryChatbot" resultType="com.citc.nce.auth.csp.chatbot.vo.ChatbotResp">
+        select acc.id as id,
+        acc.account_name as chatbotName,
+        acc.chatbot_account_id as chatbotAccountId,
+        acc.chatbot_account as chatbotAccount,
+        acc.customer_id as customerId,
+        acc.account_type as operatorName,
+        acc.account_type_code as operatorCode,
+        acc.chatbot_status as chatbotStatus,
+        acc.is_add_other as isAddOther,
+        acc.create_time as createTime,
+        acc.update_time as updateTime,
+        acc.supplier_tag as supplierTag,
+        uei.enterprise_name as enterpriseName,
+        uei.enterprise_account_name as enterpriseAccountName,
+        detail.id as cmccId,
+        detail.failure_reason as failureReason,
+        whiteList.white_list as whiteList,
+        whiteList.status as whiteListStatus,
+        shelve.status as shelvesStatus,
+        menu.menu_status as menuStatus,
+        menu.result as result,
+        tariff.tariff_content as tariffContent
+        from csp_customer_chatbot_account acc
+        left join chatbot_manage_cmcc detail
+        on acc.chatbot_account_id = detail.chatbot_account_id and detail.deleted = 0
+        left join user_enterprise_identification uei
+        on acc.customer_id = uei.user_id and uei.deleted = 0
+        left join chatbot_manage_white_list whiteList
+        on whiteList.chatbot_account_id = acc.chatbot_account_id and whiteList.deleted = 0
+        left join chatbot_manage_shelves shelve
+        on shelve.chatbot_account_id = acc.chatbot_account_id and shelve.deleted = 0
+        left join (SELECT chatbot_manage_menu.* FROM chatbot_manage_menu JOIN (
+        SELECT chatbot_account_id,MAX(version) version FROM chatbot_manage_menu GROUP BY chatbot_account_id) tmp
+        ON chatbot_manage_menu.chatbot_account_id=tmp.chatbot_account_id AND chatbot_manage_menu.version=tmp.version)
+        menu
+        on menu.chatbot_account_id = acc.chatbot_account_id and menu.deleted = 0
+        left join charge_tariff tariff
+        on tariff.batch = acc.tariff_batch
+        where acc.deleted = 0
+        <if test='operatorCode != null and operatorCode >= 0'>
+            and acc.account_type_code = #{operatorCode}
+        </if>
+        <if test='chatbotString != null and chatbotString != ""'>
+            and (acc.account_name like concat('%', #{chatbotString}, '%') or
+            acc.chatbot_account like concat('%', #{chatbotString}, '%'))
+        </if>
+        <if test='chatbotStatus != null and chatbotStatus > 0'>
+            and acc.chatbot_status = #{chatbotStatus}
+        </if>
+        <if test='customerId != null and customerId != ""'>
+            and acc.customer_id = #{customerId}
+        </if>
+        <if test='cspId != null and cspId != ""'>
+            and acc.csp_id = #{cspId}
+        </if>
+    </select>
+
+    <select id="getAllChatbot" resultType="com.citc.nce.auth.accountmanagement.vo.AccountManagementTreeResp">
+        select csp_customer_chatbot_account.id,
+        csp_customer_chatbot_account.account_name,
+        csp_customer_chatbot_account.chatbot_account,
+        csp_customer_chatbot_account.chatbot_account_id,
+        csp_customer_chatbot_account.account_type,
+        csp_customer_chatbot_account.is_add_other,
+        csp_customer_chatbot_account.chatbot_status as state,
+        csp_customer_chatbot_account.supplier_tag,
+        csp_customer_chatbot_account.chatbot_status,
+        chatbot_manage_cmcc.actual_state as actualState
+        from csp_customer_chatbot_account
+        left join chatbot_manage_cmcc
+        on chatbot_manage_cmcc.chatbot_account_id = csp_customer_chatbot_account.chatbot_account_id
+        and chatbot_manage_cmcc.deleted = 0
+        where csp_customer_chatbot_account.deleted = 0
+        <if test='customerId != null and customerId != ""'>
+            and csp_customer_chatbot_account.customer_id = #{customerId}
+        </if>
+    </select>
+
+    <select id="getAllChatbotIncludeDeleted"
+            resultType="com.citc.nce.auth.accountmanagement.vo.AccountManagementTreeResp">
+        select csp_customer_chatbot_account.id,
+        csp_customer_chatbot_account.account_name,
+        csp_customer_chatbot_account.chatbot_account,
+        csp_customer_chatbot_account.chatbot_account_id,
+        csp_customer_chatbot_account.account_type,
+        csp_customer_chatbot_account.is_add_other,
+        csp_customer_chatbot_account.chatbot_status as state,
+        csp_customer_chatbot_account.supplier_tag,
+        csp_customer_chatbot_account.chatbot_status,
+        chatbot_manage_cmcc.actual_state as actualState
+        from csp_customer_chatbot_account
+        left join chatbot_manage_cmcc
+        on chatbot_manage_cmcc.chatbot_account_id = csp_customer_chatbot_account.chatbot_account_id
+        <if test='customerId != null and customerId != ""'>
+            where csp_customer_chatbot_account.customer_id = #{customerId}
+        </if>
+    </select>
+
+
+    <select id="getProvedChatbot" resultType="com.citc.nce.auth.accountmanagement.vo.AccountManagementTreeResp">
+        select csp_customer_chatbot_account.id,
+        csp_customer_chatbot_account.account_name,
+        csp_customer_chatbot_account.chatbot_account,
+        csp_customer_chatbot_account.chatbot_account_id,
+        csp_customer_chatbot_account.account_type,
+        csp_customer_chatbot_account.is_add_other,
+        csp_customer_chatbot_account.chatbot_status as state,
+        chatbot_manage_cmcc.actual_state as actualState
+        from csp_customer_chatbot_account
+        left join chatbot_manage_cmcc
+        on chatbot_manage_cmcc.chatbot_account_id = csp_customer_chatbot_account.chatbot_account_id
+        and chatbot_manage_cmcc.deleted = 0
+        where csp_customer_chatbot_account.deleted = 0
+        <if test='customerId != null and customerId != ""'>
+            and csp_customer_chatbot_account.customer_id = #{customerId}
+        </if>
+        <if test="chatbotAccounts != null and chatbotAccounts.size()!=0 ">
+            and csp_customer_chatbot_account.chatbot_account in
+            <foreach collection="chatbotAccounts" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="getChatbotByChatbotAccounts"
+            resultType="com.citc.nce.auth.accountmanagement.vo.AccountManagementTreeResp">
+        select csp_customer_chatbot_account.id,
+        csp_customer_chatbot_account.account_name,
+        csp_customer_chatbot_account.chatbot_account,
+        csp_customer_chatbot_account.chatbot_account_id,
+        csp_customer_chatbot_account.account_type,
+        csp_customer_chatbot_account.is_add_other,
+        csp_customer_chatbot_account.chatbot_status as state
+        from csp_customer_chatbot_account
+        where deleted = 0
+        <if test='customerId != null and customerId != ""'>
+            and customer_id = #{customerId}
+        </if>
+        <if test="chatbotAccounts != null and chatbotAccounts.size()!=0 ">
+            and chatbot_account in
+            <foreach collection="chatbotAccounts" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="selectAccountByCustomerId"
+            resultType="com.citc.nce.auth.prepayment.vo.FifthMessageAccountListVo">
+        SELECT chatbot.id,
+               chatbot.account_name,
+               chatbot.chatbot_account,
+               chatbot.chatbot_account_id,
+               chatbot.supplier_tag,
+               chatbot.agent_id,
+               chatbot.ec_id,
+               chatbot.chatbot_status                           AS status,
+               chatbot.account_type_code                        AS operatorCode,
+               round(sum(cast(po.amount as decimal(10, 2))), 2) as totalOrderAmount,
+               round(sum(cast(po.refund as decimal(10, 2))), 2) as totalOrderRefund,
+               SUM(textDetail.total_amount)                     AS totalTextMessageNumber,
+               SUM(textDetail.available_amount)                 AS totalUsableTextMessageNumber,
+               SUM(richDetail.total_amount)                     AS totalRichMessageNumber,
+               SUM(richDetail.available_amount)                 AS totalUsableRichMessageNumber,
+               SUM(conversationDetail.total_amount)             AS totalConversationNumber,
+               SUM(conversationDetail.available_amount)         AS totalUsableConversationNumber,
+               chatbot.create_time,
+               menu.menu_status,
+               menu.result,
+               tariff.tariff_content                            as tariffContent
+        FROM csp_customer_chatbot_account chatbot
+                 LEFT JOIN prepayment_order po
+                           ON po.msg_type = 1
+                               AND chatbot.chatbot_account = po.account_id
+                               AND po.pay_time IS NOT NULL
+                 LEFT JOIN prepayment_order_detail textDetail
+                           ON textDetail.order_id = po.order_id
+                               AND textDetail.msg_sub_type = 0
+                 LEFT JOIN prepayment_order_detail richDetail
+                           ON richDetail.order_id = po.order_id
+                               AND richDetail.msg_sub_type = 1
+                 LEFT JOIN prepayment_order_detail conversationDetail
+                           ON conversationDetail.order_id = po.order_id
+                               AND conversationDetail.msg_sub_type = 2
+                 LEFT JOIN charge_tariff tariff
+                           on tariff.batch = chatbot.tariff_batch
+                 LEFT JOIN (SELECT cmm.chatbot_account_id,
+                                   cmm.menu_status,
+                                   cmm.result
+                            FROM chatbot_manage_menu cmm
+                                     INNER JOIN (SELECT chatbot_account_id, MAX(version) AS max_version
+                                                 FROM chatbot_manage_menu
+                                                 GROUP BY chatbot_account_id) sub
+                                                ON cmm.chatbot_account_id = sub.chatbot_account_id
+                                                    AND cmm.version = sub.max_version) menu
+                           ON chatbot.chatbot_account_id = menu.chatbot_account_id
+        WHERE chatbot.deleted = 0
+          AND chatbot.customer_id = #{customerId}
+        GROUP BY chatbot.id,
+                 chatbot.account_name,
+                 chatbot.chatbot_account,
+                 chatbot.chatbot_account_id,
+                 chatbot.chatbot_status,
+                 chatbot.account_type_code,
+                 chatbot.create_time,
+                 menu.menu_status,
+                 menu.result,
+                 tariff.tariff_content;
+    </select>
+
+    <select id="selectPlanAccountByCustomerId"
+            resultType="com.citc.nce.auth.prepayment.vo.FifthMessageAccountListVo">
+        SELECT chatbot.id,
+        chatbot.account_name,
+        chatbot.chatbot_account,
+        chatbot.chatbot_account_id,
+        chatbot.account_type AS operator,
+        SUM(textDetail.available_amount) AS totalUsableTextMessageNumber,
+        SUM(richDetail.available_amount) AS totalUsableRichMessageNumber,
+        SUM(conversationDetail.available_amount) AS totalUsableConversationNumber
+        FROM csp_customer_chatbot_account chatbot
+        LEFT JOIN prepayment_order po
+        ON po.msg_type = 1
+        AND chatbot.chatbot_account = po.account_id
+        AND po.pay_time IS NOT NULL
+        LEFT JOIN prepayment_order_detail textDetail
+        ON textDetail.order_id = po.order_id
+        AND textDetail.msg_sub_type = 0
+        LEFT JOIN prepayment_order_detail richDetail
+        ON richDetail.order_id = po.order_id
+        AND richDetail.msg_sub_type = 1
+        LEFT JOIN prepayment_order_detail conversationDetail
+        ON conversationDetail.order_id = po.order_id
+        AND conversationDetail.msg_sub_type = 2
+        WHERE chatbot.deleted = 0
+        AND chatbot.customer_id = #{customerId}
+        AND chatbot.chatbot_account in
+        <foreach collection="chatbotAccountIds" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        GROUP BY chatbot.id,
+        chatbot.account_name,
+        chatbot.chatbot_account,
+        chatbot.chatbot_account_id,
+        chatbot.account_type
+        ORDER BY chatbot.create_time DESC;
+    </select>
+    <select id="selectChatbotAvaliableAmountByChatbotIds"
+            resultType="com.citc.nce.auth.csp.chatbot.vo.ChatbotPackageAvailableAmount">
+        SELECT
+        po.account_id,
+        SUM(textDetail.available_amount) AS totalUsableTextMessageNumber,
+        SUM(richDetail.available_amount) AS totalUsableRichMessageNumber,
+        SUM(conversationDetail.available_amount) AS totalUsableConversationNumber
+        FROM prepayment_order po
+        LEFT JOIN prepayment_order_detail textDetail ON textDetail.order_id = po.order_id AND textDetail.msg_sub_type =
+        0
+        LEFT JOIN prepayment_order_detail richDetail ON richDetail.order_id = po.order_id AND richDetail.msg_sub_type =
+        1
+        LEFT JOIN prepayment_order_detail conversationDetail ON conversationDetail.order_id = po.order_id AND
+        conversationDetail.msg_sub_type = 2
+        WHERE
+        po.msg_type = 1
+        AND po.account_id IN
+        <foreach item="item" index="index" collection="chatbotIds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        AND po.pay_time IS NOT NULL
+        GROUP BY po.account_id
+    </select>
+</mapper>

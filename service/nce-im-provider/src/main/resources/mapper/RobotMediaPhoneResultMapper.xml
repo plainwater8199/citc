@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.im.mapper.RobotMediaPhoneResultMapper1">
+
+    <select id="quantityByHours" parameterType="string" resultType="com.citc.nce.robot.vo.TestResp">
+        SELECT plan_id,plan_detail_id,DATE_FORMAT(send_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(send_time,'%Y-%m-%d') sendTimeDay,media_account_id,media_operator_code,creator
+        from robot_media_phone_result
+        WHERE
+            DATE_FORMAT(send_time,'%Y-%m-%d') = #{specificTime}
+        GROUP BY plan_id,plan_detail_id,sendTimeDay,sendTimeHour,media_account_id,creator,media_operator_code
+    </select>
+
+
+    <select id="quantityUnknow" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num ,plan_id,send_result,plan_detail_id,DATE_FORMAT(send_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(send_time,'%Y-%m-%d') sendTimeDay,media_operator_code,creator,media_account_id
+        from robot_media_phone_result
+        WHERE
+        DATE_FORMAT(send_time,'%Y-%m-%d') = #{yesterday}
+        AND send_result = '0'
+        GROUP BY plan_id,send_result,plan_detail_id,sendTimeDay,sendTimeHour,caller_account,creator,media_account_id,media_operator_code
+    </select>
+
+    <select id="quantitySuccess" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num ,plan_id,send_result,plan_detail_id,DATE_FORMAT(receipt_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(receipt_time,'%Y-%m-%d') sendTimeDay,media_operator_code,creator, DATE_FORMAT(send_time,'%Y-%m-%d') otherTimeDay,media_account_id
+        from robot_media_phone_result
+        WHERE
+            DATE_FORMAT(receipt_time,'%Y-%m-%d') = #{yesterday}
+          AND send_result = '1'
+        GROUP BY plan_id,send_result,plan_detail_id,sendTimeDay,sendTimeHour,caller_account,creator,otherTimeDay,media_account_id,media_operator_code
+    </select>
+
+    <select id="quantityFailed" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num ,plan_id,send_result,plan_detail_id,DATE_FORMAT(receipt_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(receipt_time,'%Y-%m-%d') sendTimeDay,media_operator_code,creator,DATE_FORMAT(send_time,'%Y-%m-%d') otherTimeDay,media_account_id
+        from robot_media_phone_result
+        WHERE
+            DATE_FORMAT(receipt_time,'%Y-%m-%d') = #{yesterday}
+          AND send_result = '2'
+        GROUP BY plan_id,send_result,plan_detail_id,sendTimeDay,sendTimeHour,caller_account,creator,otherTimeDay,media_account_id,media_operator_code
+    </select>
+
+
+    <select id="quantitySendAmount" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num ,plan_id,send_result,plan_detail_id,DATE_FORMAT(send_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(send_time,'%Y-%m-%d') sendTimeDay,media_operator_code,creator,media_account_id
+        from robot_media_phone_result
+        WHERE
+            DATE_FORMAT(send_time,'%Y-%m-%d') = #{yesterday}
+        GROUP BY plan_id,send_result,plan_detail_id,sendTimeDay,sendTimeHour,media_operator_code,creator,media_account_id
+    </select>
+</mapper>

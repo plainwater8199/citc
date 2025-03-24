@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.citc.nce.common.web.config.WebAutoConfiguration,\
+  com.citc.nce.common.web.config.ApplicationJacksonConfig,\
+  com.citc.nce.common.web.utils.dh.ECDHService

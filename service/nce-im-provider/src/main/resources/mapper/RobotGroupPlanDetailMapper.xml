@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.mapper.RobotGroupSendPlansDetailDao">
+
+    <select id="queryAnalysisByHour" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(send_amount) sendAmount,DATE_FORMAT(create_time ,'%H:00') sendTimeHour
+        FROM robot_group_plan_detail
+        where  DATE_FORMAT(create_time,'%Y-%m-%d') = #{specificTime}
+        <if test="callerAccount != null and callerAccount != ''">
+            and operator like #{callerAccount}
+        </if>
+        GROUP BY sendTimeHour
+    </select>
+
+    <select id="queryAnalysisByDay" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(send_amount) sendAmount,DATE_FORMAT(create_time ,'%Y-%m-%d') sendTimeDay
+        FROM robot_group_plan_detail
+        where  DATE_FORMAT(create_time ,'%Y-%m-%d') between #{startTime} and #{endTime}
+        <if test="callerAccount != null and callerAccount != ''">
+            and operator like #{callerAccount}
+        </if>
+        GROUP BY sendTimeDay
+    </select>
+
+
+    <select id="queryPlanSend"  resultType="com.citc.nce.robot.vo.PlanSend">
+        select t.plan_id , sum(t.send_amount)
+        from robot_group_plan_detail t
+        where t.send_amount > 0
+        group by t.plan_id
+    </select>
+</mapper>

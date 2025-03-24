@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.mall.variable.mapper.MallRobotVariableDao">
+
+
+    <select id="listByIdsDel" resultType="com.citc.nce.im.mall.variable.entity.MallRobotVariableDo">
+        select id, variable_name, variable_value, creator, create_time, updater, update_time, deleted, deleted_time
+        from mall_robot_variable
+        where id in
+        <foreach collection="ids" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </select>
+    <select id="listByIds" resultType="com.citc.nce.im.mall.variable.entity.MallRobotVariableDo">
+        select id, variable_name, variable_value, creator, create_time, updater, update_time, deleted, deleted_time
+        from mall_robot_variable
+        where id in
+        <foreach collection="ids" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+        and deleted = 0
+    </select>
+</mapper>

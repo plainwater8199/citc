@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.dataStatistics.dao.ConversationalQuantityStatisticDao">
+
+    <!-- 创建表SQL，参数为表名 -->
+    <update id="createTable" parameterType="string">
+        CREATE TABLE ${tableName} (
+                                      `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '表主键',
+                                      `operator_type` tinyint(4) NOT NULL COMMENT '运营商类型',
+                                      `send_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '发送量',
+                                      `upside_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '上行量',
+                                      `session_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '会话量',
+                                      `effective_session_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '有效会话量',
+                                      `new_users_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '新增用户数',
+                                      `active_users_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '活跃用户数',
+                                      `chatbot_account_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'chatbotid',
+                                      `hours` datetime NOT NULL COMMENT '时间(小时)',
+                                      `creator` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '创建者',
+                                      `create_time` datetime NOT NULL COMMENT '创建时间',
+                                      `updater` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '更新人',
+                                      `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+                                      `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否删除 默认0 未删除  1 删除',
+                                      `deleted_time` datetime DEFAULT NULL COMMENT '删除时间戳',
+                                      PRIMARY KEY (`id`) USING BTREE
+        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='昨日会话用户统计表'
+
+    </update>
+
+
+</mapper>

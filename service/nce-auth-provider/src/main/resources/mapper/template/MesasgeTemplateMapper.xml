@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.messagetemplate.dao.MessageTemplateDao">
+
+    <select id="getTemplates" resultType="com.citc.nce.auth.messagetemplate.entity.MessageTemplateDo" parameterType="com.citc.nce.auth.messagetemplate.entity.MessageTemplateDoQueryParam">
+        select
+            id,
+            template_name as templateName,
+            template_type as templateType,
+            accounts,
+            message_type,
+            module_information,
+            shortcut_button,
+            template_source  as templateSource ,
+            process_id as processId,
+            update_time as updateTime
+               from message_template t where t.deleted=0 and template_source=#{templateSource}
+            <if test="templateName !=null and templateName!=''">
+               and template_name like CONCAT('%',#{templateName},'%')
+            </if>
+            <if test="templateType !=null">
+                and template_type=#{templateType}
+            </if>
+            <if test="messageType !=null">
+                and message_type=#{messageType}
+            </if>
+            <if test="creator !=null and creator!=''">
+                and creator=#{creator}
+            </if>
+            <if test="status!=null and status==-1">
+                 and not exists(select 1 from message_template_audit a where a.template_id=t.id and a.deleted=0
+                 <if test="accounts!=null  and accounts.size()!=0">
+                     and a.chatbot_account in
+                     <foreach collection="accounts" item="item" index="index" open="(" close=")" separator=",">
+                         #{item}
+                     </foreach>
+                 </if>                                                    )
+             </if>
+            <if test="accounts != null || (status!=null and status!=-1) ">
+              and exists(select 1 from message_template_audit a where a.template_id=t.id
+                   <if test="accounts!=null  and accounts.size()!=0">
+                       and a.chatbot_account in
+                       <foreach collection="accounts" item="item" index="index" open="(" close=")" separator=",">
+                           #{item}
+                       </foreach>
+                   </if>
+                   <if test="status!=null and status!=-1">
+                        and a.status =#{status}
+                   </if>
+                and a.deleted=0
+             )
+        order by t.id desc
+        </if>
+    </select>
+
+    <select id="getProveTemplates" resultType="com.citc.nce.auth.messagetemplate.entity.MessageTemplateDo" >
+        select id, template_name as templateName,template_type as templateType,message_type as messageType,
+        accounts,template_source  as templateSource ,process_id as processId,update_time as updateTime
+        from message_template t where t.deleted=0 and template_source=#{templateSource}
+        <if test="templateType !=null">
+            and template_type=#{templateType}
+        </if>
+            and creator=#{creator}
+            and exists(select 1 from message_template_audit a where a.template_id=t.id
+              and a.operator in
+                <foreach collection="operators" item="item" index="index" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+                and a.status =0 and a.deleted=0
+            )
+        order by t.id desc
+    </select>
+</mapper>

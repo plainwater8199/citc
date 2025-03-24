@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.citc.nce</groupId>
+        <artifactId>nec-citc</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <packaging>pom</packaging>
+    <modules>
+        <module>nce-common-core</module>
+        <module>nce-common-facade</module>
+        <module>nce-common-feignserver</module>
+        <module>nce-common-log</module>
+        <module>nce-common-mybatis</module>
+        <module>nce-common-openfeign</module>
+        <module>nce-common-redis</module>
+        <module>nce-common-security</module>
+        <module>nce-common-web</module>
+        <module>nce-common-xss</module>
+        <module>nce-common-seata</module>
+    </modules>
+
+    <artifactId>commons</artifactId>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+</project>

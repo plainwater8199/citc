@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.authcenter.admin.dao.AdminUserMapper">
+
+    <resultMap id="UserAndRoleDto" type="com.citc.nce.authcenter.admin.dto.UserAndRoleDto">
+        <result property="userId" column="user_id"></result>
+        <result property="accountName" column="account_name"></result>
+        <result property="fullName" column="full_name"></result>
+        <result property="phone" column="phone"></result>
+        <result property="userStatus" column="user_status"></result>
+        <result property="creator" column="creator"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updater" column="updater"></result>
+        <result property="updateTime" column="update_time"></result>
+        <collection property="roleList" ofType="com.citc.nce.authcenter.admin.dto.RoleDto">
+            <result property="roleId" column="role_id"></result>
+            <result property="roleName" column="role_name"></result>
+            <result property="remark" column="remark"></result>
+            <result property="roleStatus" column="role_status"></result>
+        </collection>
+    </resultMap>
+
+    <update id="deleteRole" parameterType="com.citc.nce.authcenter.admin.dto.CodeDto">
+        UPDATE admin_role SET deleted = 1 ,deleted_time = UNIX_TIMESTAMP(NOW()) WHERE role_id = #{code};
+        UPDATE admin_role_menu SET deleted = 1 ,deleted_time = UNIX_TIMESTAMP(NOW()) WHERE role_id = #{code};
+        UPDATE admin_user_role SET deleted = 1 ,deleted_time = UNIX_TIMESTAMP(NOW()) WHERE role_id = #{code};
+    </update>
+
+    <update id="deleteRoleMenu">
+        UPDATE admin_role_menu SET deleted = 1 ,deleted_time = UNIX_TIMESTAMP(NOW())
+        WHERE role_id = #{roleId}
+        AND menu_code IN
+        <foreach collection="menuCodeList" item="num" open="(" separator="," close=")">
+            #{num}
+        </foreach>
+    </update>
+
+    <update id="deleteRoleByUserId" parameterType="java.lang.String">
+        UPDATE admin_user_role SET deleted = 1 ,deleted_time = UNIX_TIMESTAMP(NOW()) WHERE user_id = #{userId}
+    </update>
+
+    <update id="deleteRoleList" parameterType="java.lang.String">
+        UPDATE admin_user_role SET deleted = 1 ,deleted_time = UNIX_TIMESTAMP(NOW())
+        WHERE role_id IN
+        <foreach collection="roleIdList" item="num" open="(" separator="," close=")">
+            #{num}
+        </foreach>
+        and user_id = #{userId}
+    </update>
+
+    <update id="deleteRoleByUserIdList">
+        UPDATE admin_user_role SET deleted = 1 ,deleted_time = UNIX_TIMESTAMP(NOW())
+        WHERE role_id = #{roleId}
+        AND user_id IN
+        <foreach collection="userIdList" item="num" open="(" separator="," close=")">
+            #{num}
+        </foreach>
+    </update>
+
+    <select id="selectOperatorList" resultMap="UserAndRoleDto"
+            parameterType="com.citc.nce.authcenter.admin.dto.OperatorDto">
+        SELECT a.*,c.*
+        <include refid="sql1"/>
+    </select>
+
+    <select id="selectMenuByUserId" resultType="com.citc.nce.authcenter.admin.entity.AdminMenuDo"
+            parameterType="java.lang.String">
+        SELECT
+        id, menu_code, menu_name, menu_url, menu_parent_code, `level`,
+        sort, `type`, hidden, redirect, icon, creator, create_time,
+        updater, update_time, deleted, deleted_time
+        FROM admin_menu
+        WHERE menu_code IN (
+        SELECT menu_code
+        FROM admin_role_menu
+        WHERE role_id IN (
+        SELECT a.role_id
+        FROM admin_user_role a
+        LEFT JOIN admin_role b ON a.role_id = b.role_id AND a.deleted = 0 AND b.deleted = 0
+        LEFT JOIN admin_user c ON a.user_id = c.user_id AND c.deleted = 0
+        WHERE a.user_id = #{userId} AND b.role_status = 1 AND c.user_status = 1
+        ) AND deleted = 0) AND deleted = 0
+    </select>
+
+    <select id="selectUserRoleByUserId" resultType="java.lang.String" parameterType="java.lang.String">
+        SELECT DISTINCT a.role_id
+        FROM admin_role a
+        LEFT JOIN admin_user_role b ON a.role_id = b.role_id
+        WHERE b.user_id = #{userId} AND a.role_status = 1 AND a.deleted = 0 AND b.deleted = 0
+    </select>
+
+    <sql id="sql1">
+        FROM admin_user a
+        LEFT JOIN admin_user_role b ON a.user_id = b.user_id
+        AND a.deleted = 0
+        AND b.deleted = 0
+        LEFT JOIN admin_role c
+        ON b.role_id = c.role_id
+        AND c.deleted = 0
+        WHERE 1 = 1
+        <if test="roleIdList != null and roleIdList.size > 0 ">
+            AND b.role_id IN
+            <foreach collection="roleIdList" item="num" open="(" separator="," close=")">
+                #{num}
+            </foreach>
+        </if>
+        <if test="keyWord != null and keyWord !=''">
+            AND a.full_name LIKE concat('%',#{keyWord},'%')
+        </if>
+        <if test="status != null ">
+            AND a.user_status = #{status}
+        </if>
+        ORDER BY a.create_time DESC
+    </sql>
+
+    <select id="findWorkOrderPermissionUsers" resultType="com.citc.nce.authcenter.admin.entity.AdminUserDo">
+        SELECT DISTINCT au.* FROM admin_user au
+        LEFT JOIN admin_user_role aur ON aur.user_id  = au.user_id
+        LEFT JOIN admin_role_menu arm ON aur.role_id = arm.role_id
+        WHERE arm.menu_code = '1000030' AND au.deleted = 0 AND au.user_status = 1 ORDER BY au.id ASC
+    </select>
+</mapper>

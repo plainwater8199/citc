@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.robot.dao.TemporaryStatisticsDao">
+
+
+    <select id="findAllProcessDateByTime" resultType="com.citc.nce.dataStatistics.dto.ProcessTemporaryStatisticDto">
+        SELECT
+            DATE_FORMAT(t.create_time,'%Y-%m-%d %H') AS hours,
+            t.type AS type,
+            t.scene_id AS robotSceneNodeId,
+            t.process_id AS robotProcessSettingNodeId,
+            t.creator AS customerId,
+            t.chatbot_type AS operatorType,
+            t.chatbot_account_id AS chatbotAccountId,
+            Count(t.id) AS num
+        FROM temporary_statistics t
+        WHERE
+            t.create_time >= #{startDate}
+          and t.create_time <![CDATA[<=]]> #{endDate}
+        <if test="customerId != null and customerId !='' ">
+           and t.creator = #{customerId}
+        </if>
+        <if test="typeList != null and typeList.size()>0 ">
+            and t.type in
+            <foreach item ="id" collection="typeList" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY customerId,operatorType,chatbotAccountId,robotSceneNodeId,robotProcessSettingNodeId,hours,type;
+
+    </select>
+
+
+    <select id="findAllConversationalDateByTime" resultType="com.citc.nce.dataStatistics.dto.ConversationalTemporaryStatisticDto">
+        SELECT
+            DATE_FORMAT(t.create_time,'%Y-%m-%d %H') AS hours,
+            t.type AS type,
+            t.creator AS customerId,
+            t.chatbot_type AS operatorType,
+            t.chatbot_account_id AS chatbotAccountId,
+            Count(t.id) AS num
+        FROM temporary_statistics t
+        WHERE t.create_time >= #{startDate} and t.create_time <![CDATA[<=]]> #{endDate}
+        <if test="customerId != null and customerId !='' ">
+             and t.creator = #{customerId}
+        </if>
+        <if test="typeList != null and typeList.size()>0 ">
+            and t.type in
+            <foreach item ="id" collection="typeList" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY customerId,operatorType,chatbotAccountId,hours,type;
+    </select>
+
+
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.tempStore.mapper.ResourcesVideoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.robot.api.tempStore.domain.ResourcesVideo">
+        <id column="video_id" property="videoId"/>
+        <result column="cover" property="cover"/>
+        <result column="duration" property="duration"/>
+        <result column="name" property="name"/>
+        <result column="file_id" property="fileId"/>
+        <result column="size" property="size"/>
+        <result column="format" property="format"/>
+        <result column="creator" property="creator"/>
+        <result column="updater" property="updater"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        video_id
+        , cover, duration, `name`, `size`, format, creator, updater, create_time, update_time, deleted
+    </sql>
+
+    <select id="listByIdsDel" resultType="com.citc.nce.robot.api.tempStore.domain.ResourcesVideo">
+        select
+        video_id, cover, duration, `name`, file_id, `size`, format, crop_obj, creator, updater, create_time, update_time,
+        deleted
+        from ts_resources_video
+        where video_id in
+        <foreach collection="ids" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </select>
+
+</mapper>

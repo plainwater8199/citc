@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.citc.nce</groupId>
+        <artifactId>service</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>nce-filecenter-provider</artifactId>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-auth-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-rebot-files-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-filecenter-api</artifactId>
+        </dependency>
+        <!-- linux 64位ffmpeg -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>ffmpeg</artifactId>
+            <version>${ffmpeg.version}</version>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
+        <!-- windows 64位ffmpeg -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>ffmpeg</artifactId>
+            <version>${ffmpeg.version}</version>
+            <classifier>windows-x86_64</classifier>
+        </dependency>
+        <!-- javacv依赖 -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+            <version>${javacv.version}</version>
+        </dependency>
+        <!-- jave核心包 -->
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-core</artifactId>
+            <version>${java-native.version}</version>
+        </dependency>
+        <!-- window64位 ffmpeg -->
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-native-win64</artifactId>
+            <version>${java-native.version}</version>
+        </dependency>
+        <!-- linux64位 ffmpeg -->
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-native-linux64</artifactId>
+            <version>${java-native.version}</version>
+        </dependency>
+        <!-- window32位 ffmpeg -->
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-native-win32</artifactId>
+            <version>${java-native.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>${minio.version}</version>
+        </dependency>
+
+        <!--        切换shardingsphere数据源和 base事务-->
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-seata</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+            <version>0.4.8</version> <!-- 确保使用最新版本 -->
+        </dependency>
+
+    </dependencies>
+
+</project>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.materialSquare.mapper.MsSummaryContentMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.robot.api.materialSquare.entity.MsSummaryContent">
+        <id column="mssc_id" property="msscId"/>
+        <result column="ms_id" property="msId"/>
+        <result column="content_version" property="contentVersion"/>
+        <result column="ms_json" property="msJson"/>
+        <result column="ms_json_class" property="msJsonClass"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        mssc_id, ms_id, content_version, ms_json, ms_json_class
+    </sql>
+
+</mapper>

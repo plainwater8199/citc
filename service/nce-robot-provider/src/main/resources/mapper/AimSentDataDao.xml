@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.aim.dao.AimSentDataDao">
+
+    <!-- 创建表SQL，参数为表名 -->
+    <update id="createTable" parameterType="string">
+        CREATE TABLE ${tableName} (
+                                      `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '表主键',
+                                      `project_id` varchar(20) NOT NULL COMMENT '项目编码，用来识别项目，项目唯一',
+                                      `order_id` bigint(20) NOT NULL COMMENT '订单id',
+                                      `calling` varchar(15) NOT NULL COMMENT '客户号码',
+                                      `creator` varchar(64) NOT NULL DEFAULT '' COMMENT '创建者',
+                                      `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                      `updater` varchar(64) NOT NULL DEFAULT '' COMMENT '更新者',
+                                      `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
+                                      `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0:未删除 1:已删除',
+                                      `deleted_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '删除时间',
+                                      `record_id` varchar(64) NOT NULL COMMENT '唯一标识',
+                                      PRIMARY KEY (`id`),
+                                      UNIQUE KEY `aim_sent_data_record_id_IDX` (`record_id`) USING BTREE
+        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='挂短已发数据表';
+
+    </update>
+
+
+    <select id="findSendTimeListByProjectIdAndTime" resultType="java.lang.String">
+        select
+            create_time
+        from
+            aim_sent_data
+        where deleted = 0
+        <if test=" projectId != null and projectId != '' ">
+            and project_id = #{projectId}
+        </if>
+        <if test="startDate != null">
+            <![CDATA[
+				and	DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s')>= DATE_FORMAT(#{startDate}, '%Y-%m-%d %H:%i:%s')
+			]]>
+        </if>
+        <if test="endDate != null">
+            <![CDATA[
+				and	DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s')<= DATE_FORMAT(#{endDate}, '%Y-%m-%d %H:%i:%s')
+			]]>
+        </if>
+    </select>
+
+
+</mapper>

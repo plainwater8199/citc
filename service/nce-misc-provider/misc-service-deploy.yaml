@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: misc-service
+  name: misc-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: misc-service
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: misc-service
+    spec:
+      imagePullSecrets:
+        - name: devsecret
+      containers:
+        - image: 10.136.30.167:10009/citc-nce/misc-service:v1-0721.1
+          name: misc-service
+          ports:
+            - name: "http-8101"
+              containerPort: 8101
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1024Mi"
+            requests:
+              cpu: 0.5
+              memory: "512Mi"
+          env:
+            - name: NACOS_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-server-info
+                  key: NACOS_SERVER
+            - name: NACOS_NAMESPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-server-info
+                  key: NACOS_NAMESPACE
+            - name: NACOS_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-server-info
+                  key: NACOS_USER
+            - name: NACOS_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-server-info
+                  key: NACOS_PASSWORD
+status: {}

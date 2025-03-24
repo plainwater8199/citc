@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.robot.dao.RobotProcessSettingNodeDao">
+
+    <select id="selectProcessByScene" resultType="com.citc.nce.robot.vo.RobotProcessSettingNodeResp"
+            parameterType="java.lang.Long">
+        select process.id,
+               process.scene_id,
+               process.process_name,
+               process.process_value,
+               process.derail,
+               process.creator,
+               process.creator_old,
+               process.create_time,
+               process.updater,
+               process.status,
+               process.updater_old,
+               process.update_time,
+               process.deleted,
+               process.deleted_time,
+               process.modified_time,
+               process.release_time,
+               process.status,
+               trigge.primary_code_list,
+               trigge.regular_code
+        from robot_process_setting_node process
+                 left join robot_process_trigger_node trigge
+                           on process.id = trigge.process_id
+                               and process.scene_id = trigge.scene_id
+                               and trigge.deleted = 0
+        where process.scene_id = #{sceneId}
+          <if test="creator != null and creator != ''">
+            and process.creator = #{creator}
+          </if>
+          and process.deleted = 0
+    </select>
+</mapper>

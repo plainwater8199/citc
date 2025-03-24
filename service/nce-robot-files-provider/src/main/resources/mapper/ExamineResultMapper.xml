@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.robotfile.mapper.ExamineResultMapper">
+    <select id="getOverdueIds" resultType="com.citc.nce.filecenter.vo.ExamineOneReq" parameterType="date">
+        select file_uuid,operator,creator from tb_examine_result where deleted = 0 and validity &lt; #{date}
+    </select>
+
+    <update id="updateStatus" parameterType="com.citc.nce.robotfile.entity.ExamineResultDo">
+        UPDATE tb_examine_result SET validity= #{validity} ,file_status=#{fileStatus} WHERE deleted=0 AND file_id = #{fileId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="countPicture"  parameterType="string" resultType="com.citc.nce.vo.StatusTotal">
+        SELECT file_status as status,COUNT(1) as total FROM tb_examine_result WHERE  file_uuid IN
+        (SELECT picture_url_id FROM tb_picture where creator = #{creator} and deleted = 0)
+        <if test="operator != ''">
+            AND operator = #{operator}
+        </if>
+        GROUP BY file_status
+    </select>
+
+    <select id="countVideo"  parameterType="string" resultType="com.citc.nce.vo.StatusTotal">
+        SELECT file_status as status,COUNT(1) as total FROM tb_examine_result WHERE file_uuid IN
+        (SELECT video_url_id FROM tb_video where creator = #{creator} and deleted = 0)
+        <if test="operator != ''">
+            AND operator = #{operator}
+        </if>
+        GROUP BY file_status
+    </select>
+
+    <select id="countAudio"  parameterType="string" resultType="com.citc.nce.vo.StatusTotal">
+        SELECT file_status as status,COUNT(1) as total FROM tb_examine_result WHERE file_uuid IN
+        (SELECT audio_url_id FROM tb_audio where creator = #{creator} and deleted = 0)
+        <if test="operator != ''">
+            AND operator = #{operator}
+        </if>
+        GROUP BY status
+    </select>
+
+    <select id="countFile"  parameterType="string" resultType="com.citc.nce.vo.StatusTotal">
+        SELECT file_status as status,COUNT(1) as total FROM tb_examine_result WHERE file_uuid IN
+        (SELECT file_url_id FROM tb_file where creator = #{creator} and deleted = 0)
+        <if test="operator != ''">
+            AND operator = #{operator}
+        </if>
+        GROUP BY file_status
+    </select>
+</mapper>

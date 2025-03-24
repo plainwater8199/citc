@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.messageplan.dao.VideoSmsPlanMapper">
+
+    <select id="selectPlan" resultType="com.citc.nce.auth.messageplan.vo.VideoSmsPlanListVo">
+        select id,
+        plan_id,
+        name,
+        channel,
+        number,
+        price,
+        amount,
+        status,
+        create_time,
+        (select count(*)
+        from prepayment_order
+        where prepayment_order.plan_id = video_sms_plan.plan_id
+        and prepayment_order.deleted_time  = '1000-01-01 00:00:00') as orderTimes
+        from video_sms_plan
+        where deleted_time  = '1000-01-01 00:00:00' and creator = #{creator}
+        <if test="planId != null and planId != ''">
+            and plan_id like concat("%",#{planId},"%")
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+    </select>
+    <select id="selectPlanDetail" resultType="com.citc.nce.auth.messageplan.vo.VideoSmsPlanVo">
+        select id,
+               plan_id,
+               name,
+               channel,
+               number,
+               price,
+               amount,
+               status,
+               creator,
+               create_time,
+               updater,
+               update_time,
+               deleted_time,
+               (select count(*)
+                from prepayment_order
+                where prepayment_order.plan_id = video_sms_plan.plan_id
+                  and prepayment_order.deleted_time = '1000-01-01 00:00:00') as orderTimes
+        from video_sms_plan
+        where deleted_time = '1000-01-01 00:00:00'
+          and id = #{id}
+          and creator = #{cspId}
+    </select>
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.robot.dao.RobotAccountDao">
+
+
+
+    <select id="queryNewUserByTime"
+            resultType="com.citc.nce.dataStatistics.dto.ResultPerDataDto">
+        SELECT
+        <choose>
+            <when test="timeType == 'hour'">
+                DATE_FORMAT(t.create_time,'%Y-%m-%d %H') AS time,
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.create_time,'%Y-%m-%d') AS time,
+            </otherwise>
+        </choose>
+        COUNT(distinct t.mobile_num) AS sum
+        FROM
+            robot_account t
+        WHERE
+        t.create_time >= #{startDate} and t.create_time <![CDATA[<=]]> #{endDate}
+        <if test="userId != null">
+            and t.creator = #{userId}
+        </if>
+        GROUP BY time;
+    </select>
+
+
+    <select id="queryNewUserByChatbotId"
+            resultType="com.citc.nce.dataStatistics.dto.ResultPerDataDto">
+        SELECT
+        t.account as chatbotId,
+        COUNT(distinct t.mobile_num) AS sum
+        FROM
+            robot_account t
+        WHERE
+        t.create_time >= #{startDate} and t.create_time <![CDATA[<=]]> #{endDate}
+        <if test="userId != null">
+            and t.creator = #{userId}
+        </if>
+        GROUP BY chatbotId;
+    </select>
+
+
+
+</mapper>

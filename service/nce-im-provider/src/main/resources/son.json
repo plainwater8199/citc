@@ -1,0 +1,135 @@
+{
+  "robotProcessSendMessageNodeList": [
+    {
+      "nodeName": "消息发送节点",
+      "contentType": 0,
+      "contentBody": "内容1",
+      "buttonList": [
+        {
+          "id": 110,
+          "buttonType": 0,
+          "buttonDetail": "欢迎"
+        },
+        {
+          "id": 111,
+          "buttonType": 1,
+          "buttonDetail": "您好"
+        }
+      ]
+    },
+    {
+      "nodeName": "消息2",
+      "contentType": 1,
+      "contentBody": "内容2",
+      "buttonList": [
+        {
+          "id": 110,
+          "buttonType": 0,
+          "buttonDetail": "欢迎"
+        },
+        {
+          "id": 111,
+          "buttonType": 1,
+          "buttonDetail": "您好"
+        }
+      ]
+    }
+  ],
+  "robotProcessVariableNodeList": [
+    {
+      "nodeName": "变量节点",
+      "variableList": [
+        {
+          "variableName": "变量1",
+          "variableValue": "111"
+        },
+        {
+          "variableName": "变量1",
+          "variableValue": "111"
+        }
+      ]
+    }
+  ],
+  "robotProcessQuestionNodeList": [
+    {
+      "nodeName": "提问节点",
+      "contentType": 1,
+      "contentBody": "你吃了吗",
+      "buttonList": [
+        {
+          "id": 112,
+          "buttonType": 0,
+          "buttonDetail": "hello"
+        },
+        {
+          "id": 113,
+          "buttonType": 1,
+          "buttonDetail": "world"
+        }
+      ],
+      "verifyList": [
+        {
+          "verifyType": 0,
+          "verifyContent": "成员a;成员b;成员c"
+        },
+        {
+          "verifyType": 1,
+          "verifyContent": "2>1"
+        }
+      ]
+    },
+    {
+      "nodeName": "提问节点2",
+      "contentType": 1,
+      "contentBody": "你吃了吗",
+      "buttonList": [
+        {
+          "id": 112,
+          "buttonType": 0,
+          "buttonDetail": "hello"
+        },
+        {
+          "id": 113,
+          "buttonType": 1,
+          "buttonDetail": "world"
+        }
+      ],
+      "verifyList": [
+        {
+          "verifyType": 0,
+          "verifyContent": "成员a;成员b;成员c"
+        },
+        {
+          "verifyType": 1,
+          "verifyContent": "2>1"
+        }
+      ]
+    }
+  ],
+  "robotProcessLineList": [
+    {
+      "lineName": "连线1",
+      "fromId": "",
+      "fromName": "触发节点",
+      "toId": "",
+      "toName": "变量节点",
+      "index": 0
+    },
+    {
+      "lineName": "连线2",
+      "fromId": "",
+      "fromName": "变量节点",
+      "toId": "",
+      "toName": "消息发送节点",
+      "index": 0
+    },
+    {
+      "lineName": "连线3",
+      "fromId": "",
+      "fromName": "消息发送节点",
+      "toId": "",
+      "toName": "提问节点",
+      "index": 1
+    },
+  ]
+}

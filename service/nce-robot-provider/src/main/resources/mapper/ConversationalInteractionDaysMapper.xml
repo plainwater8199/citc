@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.dataStatistics.dao.ConversationalInteractionDaysDao">
+
+    <select id="getConversationalInteractionInWeek"
+            resultType="com.citc.nce.dataStatistics.entity.ConversationalInteractionDaysDo">
+        SELECT
+        operator_type,
+        chatbot_id,
+        creator,
+        SUM(send_num) AS send_num ,
+        SUM(upside_num) AS upside_num ,
+        SUM(session_num) AS session_num ,
+        SUM(effective_session_num) AS effective_session_num ,
+        SUM(new_users_num) AS new_users_num ,
+        SUM(active_users_num) AS active_users_num
+        FROM
+        conversational_interaction_days
+        WHERE
+        days >= #{startTime} and days <![CDATA[<]]> #{endTime}
+        GROUP BY
+        operator_type, creator, chatbot_id
+    </select>
+</mapper>

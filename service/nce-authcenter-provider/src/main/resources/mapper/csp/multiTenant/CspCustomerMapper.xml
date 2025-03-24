@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.authcenter.csp.multitenant.dao.CspCustomerMapper">
+    <insert id="addEnableAgentLogin">
+        alter table csp_customer
+            add column enable_agent_login tinyint default 0 comment '允许服务商代理登录 0 不允许 1 允许'
+    </insert>
+    <delete id="deleteEnableAgentLogin">
+        alter table csp_customer
+        drop enable_agent_login;
+    </delete>
+
+    <insert id="addBalanceField">
+        alter table csp_customer
+            add column balance bigint default 0 comment '账户余额'
+    </insert>
+
+    <insert id="addPayTypeColum">
+        alter table csp_customer
+            add column pay_type tinyint default 0 comment '消息付费方式  0后付费 1预付费'
+    </insert>
+
+    <insert id="addColumOutOfTime">
+        ALTER TABLE `csp_customer`
+            ADD COLUMN `out_of_time` TIMESTAMP NULL COMMENT '试用过期时间';
+    </insert>
+
+    <update id="setCustomerToFormal" parameterType="java.lang.String">
+        update csp_customer set out_of_time = null , customer_active = 1
+        where customer_id=#{customerId}
+    </update>
+
+    <update id="removeByCustomerId">
+        update csp_customer set deleted = 1, updater = #{updater}, update_time = now() where customer_id = #{customerId}
+    </update>
+
+    <delete id="deletePayTypeColum">
+        alter table csp_customer
+            drop pay_type;
+    </delete>
+
+    <select id="queryCspCustomerByAccount"
+            resultType="com.citc.nce.authcenter.csp.multitenant.entity.CspCustomer">
+        select *
+        from ${tableName}
+        where deleted = 0
+          and name = #{name}
+    </select>
+
+    <select id="queryCspCustomerByCustomerId"
+            resultType="com.citc.nce.authcenter.csp.multitenant.entity.CspCustomer">
+        select *
+        from ${tableName}
+        where deleted = 0
+          and customer_id = #{customerId}
+    </select>
+
+    <select id="queryCspCustomerByPhone" resultType="com.citc.nce.authcenter.csp.multitenant.entity.CspCustomer">
+        select *
+        from ${tableName}
+        where phone = #{phone}
+          and deleted = 0
+    </select>
+
+    <select id="queryCspCustomerList" resultType="com.citc.nce.authcenter.csp.vo.CustomerSearchResp"
+            parameterType="java.lang.String">
+        select
+        customer.phone,
+        customer.name,
+        customer.out_of_time,
+        customer.enable_agent_login,
+        customer.pay_type as payType,
+        customer.balance,
+        uei.enterprise_auth_status,
+        customer.name as accountName,
+        customer.customer_id as userId,
+        uei.id,
+        uei.enterprise_name,
+        uei.create_time as createdTime,
+        uei.credit_code as creditCode,
+        upi.person_name as personName,
+        uei.enterprise_account_name,
+        upi.id_card as idCard,
+        customer.customer_active as customerActive
+        from csp_customer customer
+        left join user_enterprise_identification uei on uei.user_id = customer.customer_id and uei.deleted = 0
+        left join user_person_identification upi on upi.user_id = customer.customer_id and upi.deleted = 0
+        where customer.deleted = 0
+        <if test="enterpriseAccountName != null and enterpriseAccountName != ''">
+            and ( uei.enterprise_name like concat("%",#{enterpriseAccountName},"%") or
+             uei.enterprise_account_name like concat("%",#{enterpriseAccountName},"%"))
+        </if>
+        <if test="customerActive != null and customerActive != -1">
+            <if test="customerActive ==3 ">
+                -- 试用结束 试用结束时间 小于 现在时间
+                and out_of_time &lt; #{javaNow}
+            </if>
+            <if test="customerActive == 2 ">
+                -- 试用中（试用结束时间 大于 现在时间） 试用用户并且激活
+                and customer.customer_active = 1
+                and out_of_time &gt; #{javaNow}
+            </if>
+            <if test="customerActive == 1 ">
+                -- 启用 一定是正式用户
+                and customer.customer_active = 1
+                and (customer.out_of_time is null)
+            </if>
+            <if test="customerActive == 0 ">
+                -- 禁用 正式用户+ 试用中（试用结束时间 大于 现在时间）
+                and customer.customer_active = 0
+                and (customer.out_of_time is null or customer.out_of_time &gt; #{javaNow})
+            </if>
+        </if>
+        <if test="cspId != null and cspId != ''">
+            and customer.csp_id = #{cspId}
+        </if>
+        <if test="phone != null and phone != ''">
+            and customer.phone like concat("%",#{phone},"%")
+        </if>
+        order by customer.create_time desc
+    </select>
+    <select id="queryCustomerOfCSPForDropdown" resultType="com.citc.nce.authcenter.csp.vo.UserInfoForDropdownVo"
+            >
+        select
+        customer.name,
+        customer.name as accountName,
+        customer.customer_id as userId,
+        uei.id,
+        uei.enterprise_name
+        from csp_customer customer
+        left join user_enterprise_identification uei on uei.user_id = customer.customer_id and uei.deleted = 0
+        where customer.deleted = 0 and
+             customer.csp_id = #{cspId}
+              and customer.pay_type=#{payType}
+        order by customer.create_time desc
+    </select>
+    <select id="getCustomerDistribution" resultType="com.citc.nce.authcenter.csp.vo.CustomerProvinceResp"
+            parameterType="java.lang.String">
+        select province, count(*) as quantity
+        from csp_customer customer
+        where customer.deleted = 0
+        <if test="cspId != null and cspId != ''">
+            and customer.csp_id = #{cspId}
+        </if>
+        group by province
+    </select>
+    <select id="getCustomerDetail" resultType="com.citc.nce.authcenter.csp.vo.CustomerDetailResp"
+            parameterType="java.lang.String">
+        select customer.customer_id as id,
+               customer.mail,
+               customer.phone,
+               customer.permissions,
+               customer.name,
+               customer.enable_agent_login,
+               customer.csp_id as cspId,
+               customer.customer_active as customerActive,
+               customer.out_of_time,
+               customer.pay_type,
+               uei.enterprise_auth_status,
+               upi.person_auth_status,
+               upi.person_name      as personName,
+               upi.id_card          as idCard,
+               upi.id_card_img_front,
+               upi.id_card_img_back,
+               upi.person_auth_time,
+               upi.audit_remark     as personAuditRemark,
+               uei.enterprise_name,
+               uei.enterprise_account_name,
+               uei.enterprise_license,
+               uei.credit_code      as creditCode,
+               uei.enterprise_auth_time,
+               uei.audit_remark     as enterpriseAuditRemark,
+               uei.address,
+               uei.area,
+               uei.province,
+               uei.city
+        from csp_customer customer
+                 left join user_enterprise_identification uei on uei.user_id = customer.customer_id and uei.deleted = 0
+                 left join user_person_identification upi on upi.user_id = customer.customer_id and upi.deleted = 0
+        where customer.deleted = 0
+          and customer.customer_id = #{customerId}
+    </select>
+
+    <select id="getCustomerOption" resultType="com.citc.nce.authcenter.csp.vo.CustomerOptionVo">
+        select DISTINCT(customer.customer_id),
+        uei.enterprise_account_name as enterpriseAccountName,
+        customer.name as name,
+        customer.csp_id,
+        uei.enterprise_name as enterpriseName,
+        customer.customer_active as customerActive
+        <if test="operatorCode !=  null">
+            ,contract.contract_service_extra_code,
+            contract.contract_service_code,
+            exists (select 1
+            from chatbot_contract_manage contract
+            where contract.customer_id = customer.customer_id
+            and contract.operator_code = #{operatorCode}
+            and contract.deleted = 0
+            and (contract.contract_Status not in (40,67,31))
+            and (contract.contract_expire_date is null or contract.contract_expire_date > now())) AS contractBanding,
+            exists (select 1
+            from csp_customer_chatbot_account chatbot
+            where chatbot.customer_id = customer.customer_id
+            and chatbot.account_type_code = #{operatorCode}
+            and chatbot.deleted = 0) as chatbotBanding
+        </if>
+        from csp_customer customer
+        left join user_enterprise_identification uei
+        on uei.user_id = customer.customer_id and uei.deleted = 0
+        <if test="operatorCode !=  null">
+            left join chatbot_contract_manage contract
+            on contract.customer_id = customer.customer_id
+                   and contract.deleted = 0
+                   and contract.operator_code = #{operatorCode}
+        </if>
+        where customer.deleted = 0
+        <if test="cspId != null and cspId != ''">
+            and customer.csp_id = #{cspId}
+        </if>
+        <if test="name != null and name != ''">
+            and (uei.enterprise_name like concat('%', #{name}, '%') or uei.enterprise_account_name like concat('%', #{name}, '%'))
+        </if>
+    </select>
+
+
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.csp.customer.dao.CustomerManageMapper">
+
+    <select id="queryUserProvince" resultType="com.citc.nce.auth.csp.customer.vo.CustomerProvinceResp">
+        select T1.province,COUNT(T1.province) as quantity from chatbot_csp_customer T1
+        where deleted = 0
+        <if test="userId != null and userId != ''">
+            and csp_user_id = #{userId}
+        </if>
+        group by T1.province order by quantity desc
+    </select>
+
+    <select id="queryList" resultType="com.citc.nce.auth.csp.customer.vo.CustomerResp">
+        select
+        T1.phone as phone,
+        T1.mail as mail,
+        T1.enterprise_auth_status as enterpriseAuthStatus,
+        T1.name as accountName,
+        T1.user_id as userId,
+        T2.id as id,
+        T2.enterprise_license as enterpriseLicense,
+        T2.enterprise_name as enterpriseName,
+        T2.enterprise_account_name as enterpriseAccountName,
+        T2.create_time as createdTime,
+        T2.credit_code as creditCode,
+        T3.person_name as personName,
+        T3.id_card as idCard,
+        T4.csp_active as cspActive,
+        T4.is_binding_chatbot as isBindingChatbot,
+        T4.is_binding as isBinding
+        from
+        <include refid="mainSql"/>
+        order by
+        T2.create_time desc
+        limit
+        #{currentPage}, #{pageSize}
+    </select>
+
+    <select id="queryListCount" resultType="java.lang.Integer">
+        select
+        count(*)
+        from
+        <include refid="mainSql"/>
+        order by
+        T2.create_time desc
+    </select>
+
+    <sql id="mainSql">
+        user T1
+        join user_enterprise_identification T2
+        on T1.user_id = T2.user_id
+        and T2.deleted = 0
+        and T1.enterprise_auth_status  = T2.enterprise_auth_status
+        <if test="enterpriseName != null and enterpriseName != ''">
+            and T2.enterprise_name like concat('%',#{enterpriseName},'%')
+        </if>
+        <if test="userId != null and userId != ''">
+            and T2.creator = #{userId}
+        </if>
+        join user_person_identification T3
+        on T1.user_id = T3.user_id
+        and T3.deleted = 0
+        <if test="userId != null and userId != ''">
+            and T3.creator = #{userId}
+        </if>
+        join chatbot_csp_customer T4
+        on T1.user_id = T4.user_id
+        and T2.id = T4.enterprise_id
+        and T4.deleted = 0
+
+        where
+        T1.deleted = 0
+        <if test="cspActive != null and cspActive >= 0">
+            and T4.csp_active = #{cspActive}
+        </if>
+        <if test="userId != null and userId != ''">
+            and T2.user_id != #{userId}
+        </if>
+    </sql>
+</mapper>

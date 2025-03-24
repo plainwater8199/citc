@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.mapper.RobotClickResultMapper">
+
+
+    <select id="queryByDay" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(click_amount) clickAmount,sum(read_amount) readNum,DATE_FORMAT(send_time_day ,'%Y-%m-%d') sendTimeDay
+        FROM robot_click_result
+        where DATE_FORMAT(send_time_day, '%Y-%m-%d') &gt;= #{specificTime}
+        AND DATE_FORMAT(send_time_day, '%Y-%m-%d') &lt;= DATE_ADD(#{specificTime},INTERVAL 6 DAY)
+        and deleted = '0' and plan_detail_id =  #{planDetailId}
+        GROUP BY sendTimeDay
+    </select>
+
+    <select id="queryByHour" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(click_amount) clickAmount,sum(read_amount) readNum,send_time_hour
+        FROM robot_click_result
+        where deleted = '0' and plan_detail_id =  #{planDetailId} and DATE_FORMAT(send_time_day ,'%Y-%m-%d') = #{specificTime}
+        GROUP BY send_time_hour
+    </select>
+
+    <select id="queryGroupByBtnUuid" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(click_amount) clickAmount,btn_name
+        FROM robot_click_result
+        where DATE_FORMAT(send_time_day, '%Y-%m-%d') &gt;= #{specificTime}
+        AND DATE_FORMAT(send_time_day, '%Y-%m-%d') &lt;= DATE_ADD(#{specificTime},INTERVAL 6 DAY)
+        and deleted = '0' and plan_detail_id =  #{planDetailId} and btn_uuid is not null
+        GROUP BY btn_name
+    </select>
+
+
+</mapper>

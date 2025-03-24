@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.invoice.dao.InvoiceManageOrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.auth.invoice.domain.InvoiceManageOrder">
+        <id column="imo_id" property="imoId" />
+        <result column="type" property="type" />
+        <result column="im_id" property="imId" />
+        <result column="order_id" property="orderId" />
+        <result column="order_json" property="orderJson" />
+        <result column="creator" property="creator" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        imo_id, type, im_id, order_id, order_json, creator, create_time
+    </sql>
+
+</mapper>

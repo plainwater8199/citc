@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.tempStore.mapper.ResourcesImgGroupMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.robot.api.tempStore.domain.ResourcesImgGroup">
+        <id column="img_group_id" property="imgGroupId" />
+        <result column="name" property="name" />
+        <result column="creator" property="creator" />
+        <result column="updater" property="updater" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        img_group_id, name, creator, updater, create_time, update_time, deleted
+    </sql>
+    <select id="groupInfo" resultType="com.citc.nce.robot.api.tempStore.bean.images.GroupInfo" parameterType="java.lang.String">
+        select ts_resources_img_group.img_group_id,ts_resources_img_group.name,info.count
+        from (
+                select img_group_id, count(img_id) as count
+                from ts_resources_img
+                where deleted = 0
+                  and creator = #{userId}
+                group by img_group_id
+             ) info right join ts_resources_img_group
+        on info.img_group_id = ts_resources_img_group.img_group_id
+        where
+            deleted = 0
+            and ts_resources_img_group.creator = #{userId}
+    </select>
+
+</mapper>

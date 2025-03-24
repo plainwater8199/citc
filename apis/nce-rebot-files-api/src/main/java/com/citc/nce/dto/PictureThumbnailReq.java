@@ -1,0 +1,17 @@
+package com.citc.nce.dto;
+
+import lombok.Data;
+
+import javax.validation.constraints.NotNull;
+
+/**
+ * @author jcrenc
+ * @since 2024/7/15 16:04
+ */
+@Data
+public class PictureThumbnailReq {
+    @NotNull
+    private String pictureUrlId;
+    @NotNull
+    private String thumbnailId;
+}

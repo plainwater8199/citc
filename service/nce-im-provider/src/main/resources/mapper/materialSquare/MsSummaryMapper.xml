@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.materialSquare.mapper.MsSummaryMapper">
+
+    <sql id="pageQuery_where" >
+        <if test="msPage.worksLibraryStatus !=null">
+            and works_library_status = #{msPage.worksLibraryStatus}
+        </if>
+        <if test="msPage.msSource !=null">
+            <if test="msPage.msSource.getCode() == 0">
+                and csp_id is not null
+            </if>
+            <if test="msPage.msSource.getCode() == 1">
+                and csp_id is null
+            </if>
+        </if>
+        <if test="msPage.creator !=null and msPage.creator!=''">
+            and creator = #{msPage.creator}
+        </if>
+        <if test="msPage.name !=null and msPage.name !=''">
+            and name like concat('%',#{msPage.name},'%')
+        </if>
+        <if test="msPage.msTypesCode !=null and msPage.msTypesCode.size()>0">
+            and ms_type in
+            <foreach collection="msPage.msTypesCode" open="(" close=")" separator="," item="item">
+                #{item}
+            </foreach>
+        </if>
+        <if test="msPage.auditStatus !=null and msPage.auditStatus.size>0">
+            and audit_status in
+            <foreach collection="msPage.auditStatus" open="(" close=")" separator="," item="item">
+                #{item}
+            </foreach>
+        </if>
+        <if test="msPage.templateStatus !=null and msPage.templateStatus.size() >0">
+            and template_status in
+            <foreach collection="msPage.templateStatus" open="(" close=")" separator="," item="item">
+                #{item}
+            </foreach>
+        </if>
+        <if test="msPage.cspId !=null and msPage.cspId.size() >0">
+            and creator in
+            <foreach collection="msPage.cspId" open="(" close=")" separator="," item="item">
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="pageQuery" resultType="com.citc.nce.robot.api.materialSquare.vo.summary.MsPageResult">
+        select mss_id,
+               ms_num,
+               name,
+               ms_type,
+               original_price,
+               discount_price,
+               audit_status,
+            audit_fail_result,
+               template_status,
+               create_time,
+        update_time,
+        publish_time,
+               csp_id,
+               likes_count,
+               view_count,
+               cover_type,
+               cover_file,
+               creator,
+               pay_type,
+               if(csp_id is NULL, 1, 0) AS msSource
+        from ms_summary
+        where deleted = 0
+        <if test="msPage.isCsp != null and msPage.isCsp == 0">
+            and publish_time is not null
+        </if>
+        <include refid="pageQuery_where">
+        </include>
+        order by
+        <if test="(msPage.sortField == null or msPage.sortField == '') and (msPage.sortOrder == null or msPage.sortOrder == '')">
+            create_time desc
+        </if>
+        <if test="msPage.sortField == 'createTime' and msPage.sortOrder == 'desc'">
+            create_time desc
+        </if>
+        <if test="msPage.sortField == 'createTime' and msPage.sortOrder == 'asc'">
+            create_time
+        </if>
+        <if test="msPage.sortField == 'likesCount' and msPage.sortOrder == 'desc'">
+            likes_count desc
+        </if>
+        <if test="msPage.sortField == 'likesCount' and msPage.sortOrder == 'asc'">
+            likes_count
+        </if>
+        <if test="msPage.sortField == 'viewCount' and msPage.sortOrder == 'desc'">
+            view_count desc
+        </if>
+        <if test="msPage.sortField == 'viewCount' and msPage.sortOrder == 'asc'">
+            view_count
+        </if>
+    </select>
+
+    <select id="getPublishVo" resultType="com.citc.nce.robot.api.materialSquare.vo.summary.MsPublisherVo">
+        select
+        distinct
+        creator,
+        if(csp_id is NULL,1,0) AS msSource
+        from ms_summary
+        where
+        deleted =0
+        <include refid="pageQuery_where"></include>
+        order by creator desc
+    </select>
+
+
+</mapper>

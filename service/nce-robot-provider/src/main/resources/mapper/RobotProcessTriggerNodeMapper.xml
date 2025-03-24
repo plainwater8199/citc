@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.robot.dao.RobotProcessTriggerNodeDao">
+
+    <resultMap id="cmunInfoDoMap" type="com.citc.nce.robot.entity.RobotProcessTriggerNodeDo">
+        <id property="id" column="id"/>
+        <result property="sceneId" column="scene_id"/>
+        <result property="processId" column="process_id"/>
+        <result property="primaryCodeList" column="primary_code_list"/>
+        <result property="regularCode" column="regular_code"/>
+        <result property="deleted" column="deleted"/>
+        <result property="deletedTime" column="deleted_time"/>
+        <result property="creator" column="creator"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updater" column="updater"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="getRobotProcessTriggerNodes" parameterType="java.util.Map"
+            resultType="com.citc.nce.robot.vo.RobotProcessTriggerNodesResp">
+        SELECT
+               t1.scene_name AS sceneName,
+               t3.process_name AS processName,
+               t2.id AS id,
+               t2.scene_id AS sceneId,
+               t2.process_id AS processId,
+               t2.primary_code_list AS primaryCodeList,
+               t2.regular_code AS regularCode,
+               t2.creator AS creator,
+               t2.create_time AS createTime,
+               t2.updater AS updater,
+               t2.update_time AS updateTime
+        FROM robot_process_trigger_node t2  LEFT JOIN robot_scene_node t1 ON t1.id =t2.scene_id  AND t1.deleted = t2.deleted LEFT JOIN robot_process_setting_node t3 ON t3.id =t2.process_id  AND t3.deleted = t2.deleted WHERE t2.deleted =0
+        AND t2.scene_id=#{sceneId}
+        <if test="creator != null and creator!= ''">
+            and t1.creator =#{creator}
+        </if>
+        <if test="account != null and account!= ''">
+            and t1.accounts like concat('%',#{account},'%')
+        </if>
+    </select>
+
+   <!-- SELECT
+    t1.scene_name AS sceneName,
+    t2.id AS id,
+    t2.scene_id AS sceneId,
+    t2.process_id AS processId,
+    t2.primary_code_list AS primaryCodeList,
+    t2.regular_code AS regularCode,
+    t2.creator AS creator,
+    t2.create_time AS createTime,
+    t2.updater AS updater,
+    t2.update_time AS updateTime
+    FROM robot_scene_node t1 LEFT JOIN robot_process_trigger_node t2 ON t1.id =t2.scene_id AND t1.deleted = t2.deleted  WHERE t1.id=#{sceneId} AND t1.deleted =0
+-->
+
+    <select id="getRobotProcessTriggerNodeAlls"
+            resultType="com.citc.nce.robot.vo.RobotProcessTriggerNodesResp">
+        SELECT
+               t1.scene_name AS sceneName,
+               t3.process_name AS processName,
+               t2.id AS id,
+               t2.scene_id AS sceneId,
+               t2.process_id AS processId,
+               t2.primary_code_list AS primaryCodeList,
+               t2.regular_code AS regularCode,
+               t2.creator AS creator,
+               t2.create_time AS createTime,
+               t2.updater AS updater,
+               t2.update_time AS updateTime
+        FROM robot_process_trigger_node t2
+            LEFT JOIN robot_scene_node t1
+                ON t1.id =t2.scene_id
+                AND t1.deleted = t2.deleted
+            LEFT JOIN robot_process_setting_node t3
+                ON t3.id =t2.process_id
+                AND t3.deleted = t2.deleted
+        WHERE t2.deleted =0
+        AND t3.derail =0
+        <if test="creator != null and creator!= ''">
+            and t1.creator =#{creator}
+        </if>
+<!--        只有正式发布了的process才能被找到 !!!  只添加了账号,没有发布时  此字段是没有的-->
+        <if test="account != null and account!= ''">
+           and t3.accounts like concat('%',#{account},'%')
+        </if>
+    </select>
+</mapper>

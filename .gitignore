@@ -1,0 +1,11 @@
+.fastRequest/
+*.class
+.idea/
+target/
+logs/
+rsaKey/
+log/
+*.iml
+DEBUG
+*.stat
+.vscode/launch.json

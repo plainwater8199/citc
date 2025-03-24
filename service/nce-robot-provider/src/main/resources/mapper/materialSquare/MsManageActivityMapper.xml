@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.materialSquare.dao.MsManageActivityMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.materialSquare.entity.MsManageActivity">
+        <id column="ms_activity_id" property="msActivityId"/>
+        <result column="name" property="name"/>
+        <result column="cover_file_id" property="coverFileId"/>
+        <result column="cover_format" property="coverFormat"/>
+        <result column="cover_name" property="coverName"/>
+        <result column="cover_length" property="coverLength"/>
+        <result column="h5_content" property="h5Content"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="creator" property="creator"/>
+        <result column="updater" property="updater"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ms_activity_id, `name`, cover_file_id, cover_format, cover_name, cover_length ,h5_content, create_time, update_time, creator, updater, deleted
+    </sql>
+
+</mapper>

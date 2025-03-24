@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: callback-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER}
+        namespace: ${NACOS_NAMESPACE:05a4b74a-59e0-4867-9faa-c05fdbf5180f}
+        username: ${NACOS_USER:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+        register-enabled: ${NACOS_REGISTER_ENABLE:true}
+      config:
+        server-addr: ${NACOS_SERVER}
+        file-extension: yaml
+        group: DEFAULT_GROUP
+        namespace: ${NACOS_NAMESPACE:05a4b74a-59e0-4867-9faa-c05fdbf5180f}
+        username: ${NACOS_USER:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+  config:
+    import:
+      - optional:nacos:callback-facade.yaml
+      - optional:nacos:nce-common.yaml
+      - optional:nacos:sentinel-circuitbreaker-rules.yml
+server:
+  port: 8104
+  #address: 0.0.0.0
+
+#====================================Seata Config===============================================
+seata:
+  enabled: ${SEATA_ENABLE:true}
+  application-id: ${spring.application.name}
+  # 事务群组（可以每个应用独立取名，也可以使用相同的名字）
+  tx-service-group: default_tx_group
+  service:
+    # 虚拟组和分组的映射
+    vgroup-mapping:
+      default_tx_group: default
+  registry:
+    type: nacos
+    nacos:
+      server-addr: ${NACOS_SERVER}
+      cluster: default
+      username: ${NACOS_USER:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+      application: ${SEATA_APP_NAME:seata-server}
+      namespace: ${NACOS_NAMESPACE:v13}
+  config:
+    type: nacos
+    nacos:
+      server-addr: ${NACOS_SERVER}
+      username: ${NACOS_USER:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+      namespace: ${NACOS_NAMESPACE:v13}
+  enable-auto-data-source-proxy: false

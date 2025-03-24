@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.readingLetter.template.dao.ReadingLetterTemplateProvedDao">
+
+    <select id="getReadingLetterPlusApprovedTemplate"
+            resultType="com.citc.nce.auth.readingLetter.template.vo.ReadingLetterPlusTemplateProvedVo">
+
+        select template.id, template.template_name, audit.platform_template_id,template.thumbnail
+        from reading_letter_template template
+        left join reading_letter_template_audit audit on template.id = audit.template_Id
+        where audit.deleted=0 and audit.status = 0 and template.deleted=0 and template.customer_id = #{customerId}
+        and audit.audit_account = #{accountId}
+        order by template.id desc
+    </select>
+
+
+</mapper>

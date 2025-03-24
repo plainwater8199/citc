@@ -1,0 +1,242 @@
+{
+  "robotProcessQuestionNodeList": [
+    {
+      "nodeName": "提问节点",
+      "contentType": 1,
+      "contentBody": "你吃了吗1",
+      "buttonList": [
+        {
+          "id": 112,
+          "buttonType": 0,
+          "buttonDetail": "hello"
+        },
+        {
+          "id": 113,
+          "buttonType": 1,
+          "buttonDetail": "world"
+        }
+      ],
+      "verifyList": [
+        {
+          "verifyType": 0,
+          "verifyContent": "成员a;成员b;成员c"
+        },
+        {
+          "verifyType": 1,
+          "verifyContent": "2>1"
+        }
+      ]
+    },
+    {
+      "nodeName": "提问节点2",
+      "contentType": 1,
+      "contentBody": "你吃了吗2",
+      "buttonList": [
+        {
+          "id": 112,
+          "buttonType": 0,
+          "buttonDetail": "hello"
+        },
+        {
+          "id": 113,
+          "buttonType": 1,
+          "buttonDetail": "world"
+        }
+      ],
+      "verifyList": [
+        {
+          "verifyType": 0,
+          "verifyContent": "成员a;成员b;成员c"
+        },
+        {
+          "verifyType": 1,
+          "verifyContent": "\\w*"
+        }
+      ]
+    }
+  ],
+  "robotProcessBranchNodeList": [
+    {
+      "nodeName": "分支节点",
+      "executeType": 0,
+      "conditionList": [
+        {
+          "conditionCode": "条件1",
+          "conditionType": 0,
+          "conditionContent": "条件1"
+        }
+      ]
+    },
+    {
+      "nodeName": "分支节点2",
+      "executeType": 1,
+      "conditionList": [
+        {
+          "conditionCode": "条件2",
+          "conditionType": 0,
+          "conditionContent": "条件2"
+        }
+      ]
+    }
+  ],
+  "robotProcessSendMessageNodeList": [
+    {
+      "nodeName": "消息发送节点",
+      "contentType": 0,
+      "contentBody": "内容1",
+      "buttonList": [
+        {
+          "id": 110,
+          "buttonType": 0,
+          "buttonDetail": "欢迎"
+        },
+        {
+          "id": 111,
+          "buttonType": 1,
+          "buttonDetail": "您好"
+        }
+      ]
+    },
+    {
+      "nodeName": "消息2",
+      "contentType": 1,
+      "contentBody": "内容2",
+      "buttonList": [
+        {
+          "id": 110,
+          "buttonType": 0,
+          "buttonDetail": "欢迎"
+        },
+        {
+          "id": 111,
+          "buttonType": 1,
+          "buttonDetail": "您好"
+        }
+      ]
+    }
+  ],
+  "robotProcessOrderNodeList": [
+    {
+      "nodeName": "指令节点",
+      "orderList": [
+        {
+          "orderType": 0,
+          "orderContent": "111"
+        },
+        {
+          "orderType": 1,
+          "orderContent": "222"
+        }
+      ]
+    }
+  ],
+  "robotProcessVariableNodeList": [
+    {
+      "nodeName": "变量节点",
+      "variableList": [
+        {
+          "variableName": "变量1",
+          "variableValue": "111"
+        },
+        {
+          "variableName": "变量1",
+          "variableValue": "111"
+        }
+      ]
+    }
+  ],
+  "robotProcessSubProcessNodeList": [
+    {
+      "nodeName": "子流程节点",
+      "subProcessList": [
+        {
+          "subProcessType": "业务查询",
+          "SubProcessValue": "流程1"
+        }
+      ]
+    },
+    {
+      "nodeName": "子流程2",
+      "subProcessList": [
+        {
+          "subProcessType": "业务查询",
+          "SubProcessValue": "流程2"
+        }
+      ]
+    }
+  ],
+  "robotProcessLineList": [
+    {
+      "lineName": "连线1",
+      "fromId": "",
+      "fromName": "触发节点",
+      "toId": "",
+      "toName": "变量节点",
+      "index": 0
+    },
+    {
+      "lineName": "连线2",
+      "fromId": "",
+      "fromName": "变量节点",
+      "toId": "",
+      "toName": "消息发送节点",
+      "index": 0
+    },
+    {
+      "lineName": "连线3",
+      "fromId": "",
+      "fromName": "消息发送节点",
+      "toId": "",
+      "toName": "分支节点",
+      "index": 0
+    },
+    {
+      "lineName": "连线3",
+      "fromId": "",
+      "fromName": "消息发送节点",
+      "toId": "",
+      "toName": "分支节点",
+      "index": 0
+    },
+    {
+      "lineName": "连线3",
+      "fromId": "",
+      "fromName": "分支节点",
+      "toId": "",
+      "toName": "提问节点",
+      "index": 0
+    },
+    {
+      "lineName": "连线3",
+      "fromId": "",
+      "fromName": "提问节点",
+      "toId": "",
+      "toName": "指令节点",
+      "index": 0
+    },
+    {
+      "lineName": "连线3",
+      "fromId": "",
+      "fromName": "提问节点",
+      "toId": "",
+      "toName": "指令节点",
+      "index": 1
+    },
+    {
+      "lineName": "连线3",
+      "fromId": "",
+      "fromName": "指令节点",
+      "toId": "",
+      "toName": "子流程节点",
+      "index": 0
+    },
+    {
+      "lineName": "连线3",
+      "fromId": "",
+      "fromName": "子流程节点",
+      "toId": "",
+      "toName": "提问节点2",
+      "index": 1
+    }
+  ]
+}

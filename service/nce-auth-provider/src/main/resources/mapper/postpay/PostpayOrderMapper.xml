@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.postpay.order.dao.PostpayOrderMapper">
+    <select id="searchPostpayOrder" resultType="com.citc.nce.auth.postpay.order.vo.PostpayOrderVo">
+        select po.id,
+        po.order_id,
+        po.payment_days,
+        po.amount,
+        po.customer_id,
+        po.pay_amount,
+        uei.name as enterpriseAccountName,
+        po.create_time,
+        po.status,
+        po.pay_time,
+        po.serial_number,
+        po.note
+        from postpay_order po
+        left join ${customer_table}  uei on
+        po.customer_id = uei.customer_id and uei.deleted = 0
+        where po.customer_id like concat('%',#{cspId},'%')
+        <if test="paymentDays !=null and paymentDays != ''">
+            and po.payment_days like concat('%',#{paymentDays},'%')
+        </if>
+        <if test="enterpriseAccountName !=null and enterpriseAccountName != ''">
+            and uei.name like concat('%',#{enterpriseAccountName},'%')
+        </if>
+        <if test="status !=null">
+            and po.status = #{status}
+        </if>
+        order by po.create_time desc
+    </select>
+    <select id="customerSearchPostpayOrder"
+            resultType="com.citc.nce.auth.postpay.order.vo.PostpayOrderCustomerVo">
+        select po.order_id,
+        po.payment_days,
+        po.amount,
+        po.pay_amount,
+        po.create_time,
+        po.status,
+        po.pay_time,
+        po.serial_number
+        from postpay_order po
+        where po.customer_id = #{customerId}
+        <if test="paymentDays !=null and paymentDays != ''">
+            and po.payment_days like concat('%',#{paymentDays},'%')
+        </if>
+        <if test="status !=null">
+            and po.status = #{status}
+        </if>
+        <if test="startTime !=null">
+            and po.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime !=null">
+            and po.create_time &lt;= #{endTime}
+        </if>
+        order by po.create_time desc
+    </select>
+    <select id="sumPostInvoicableAmount" parameterType="java.lang.String" resultType="java.math.BigDecimal">
+        select sum(invoicable_amount)
+        from postpay_order
+        where deleted_time = '1000-01-01 00:00:00'
+          and customer_id = #{customerId}
+    </select>
+</mapper>

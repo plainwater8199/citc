@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.orderRefund.dao.OrderRefundMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.auth.orderRefund.domain.OrderRefund">
+        <id column="or_id" property="orId" />
+        <result column="customer_id" property="customerId" />
+        <result column="t_order_id" property="tOrderId" />
+        <result column="order_id" property="orderId" />
+        <result column="msg_type" property="msgType" />
+        <result column="account_id" property="accountId" />
+        <result column="refund_amount" property="refundAmount" />
+        <result column="creator" property="creator" />
+        <result column="create_time" property="createTime" />
+        <result column="updater" property="updater" />
+        <result column="update_time" property="updateTime" />
+        <result column="remark" property="remark" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        or_id, customer_id, t_order_id, order_id, msg_type, account_id, refund_amount, creator, create_time, updater, update_time, remark
+    </sql>
+
+</mapper>

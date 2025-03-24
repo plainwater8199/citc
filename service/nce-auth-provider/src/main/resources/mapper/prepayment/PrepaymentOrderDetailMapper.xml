@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.prepayment.dao.PrepaymentOrderDetailMapper">
+
+    <select id="getRemainingCountByMessageType" resultType="java.lang.Long">
+        select sum(available_amount )
+        from prepayment_order_detail
+                 left join prepayment_order
+                     on prepayment_order_detail.order_id = prepayment_order.order_id
+                     and prepayment_order.`status` = 2
+        where prepayment_order.account_id = #{accountId}
+          and prepayment_order_detail.msg_type = #{msgType}
+          <if test="msgSubType != null">
+              and prepayment_order_detail.msg_sub_type = #{msgSubType}
+          </if>
+    </select>
+
+    <select id="findOldestAvailableDetail" resultType="java.lang.String">
+        select prepayment_order_detail.order_id
+        from prepayment_order_detail
+                 left join prepayment_order
+                     on prepayment_order_detail.order_id = prepayment_order.order_id
+                     and prepayment_order.`status` = 2
+        where prepayment_order.account_id = #{accountId}
+          and prepayment_order_detail.is_depleted  = 0
+          and prepayment_order_detail.available_amount > 0
+          and prepayment_order_detail.msg_type = #{msgType}
+        <if test="msgSubType != null">
+          and prepayment_order_detail.msg_sub_type = #{msgSubType}
+        </if>
+        order by prepayment_order.create_time
+        limit 1
+    </select>
+
+    <select id="findNewestUsedDetail" resultType="java.lang.String">
+        select prepayment_order_detail.order_id
+        from prepayment_order_detail
+                 left join prepayment_order
+                    on prepayment_order_detail.order_id = prepayment_order.order_id
+                    and prepayment_order.`status` = 2
+        where prepayment_order.account_id = #{accountId}
+          and prepayment_order_detail.used_amount > 0
+          and prepayment_order_detail.msg_type = #{msgType}
+        <if test="msgSubType != null">
+          and prepayment_order_detail.msg_sub_type = #{msgSubType}
+        </if>
+        order by prepayment_order.create_time desc
+        limit 1
+    </select>
+    <select id="getRemainingCountByMessageTypeAndCustomerId" resultType="java.lang.Long">
+        select sum(available_amount )
+        from prepayment_order_detail
+                 left join prepayment_order
+                     on prepayment_order_detail.order_id = prepayment_order.order_id
+                     and prepayment_order.`status` = 2
+        where prepayment_order.creator = #{customerId}
+          and prepayment_order_detail.msg_type = #{msgType}
+          and prepayment_order.account_id in
+        <foreach collection="accountIds" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+          <if test="msgSubType != null">
+              and prepayment_order_detail.msg_sub_type = #{msgSubType}
+          </if>
+    </select>
+</mapper>

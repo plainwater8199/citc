@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.csp.recharge.dao.ChargeConsumeStatisticDao">
+    <resultMap id="ChargeConsumeStatisticDto" type="com.citc.nce.auth.csp.recharge.entity.ChargeConsumeStatistic">
+        <result property="accountId" column="account_id" javaType="String" jdbcType="NVARCHAR"></result>
+        <result property="customerId" column="customer_id" javaType="String" jdbcType="NVARCHAR"></result>
+        <result property="msgNum" column="msg_num"></result>
+        <result property="msgType" column="msg_type"></result>
+        <result property="operatorCode" column="operator_code" ></result>
+        <result property="orderId" column="order_id" javaType="String" jdbcType="NVARCHAR"></result>
+        <result property="paymentDays" column="payment_days"></result>
+        <result property="payType" column="pay_type"></result>
+        <result property="price" column="price"></result>
+        <result property="tariffType" column="tariff_type"></result>
+        <result property="amount" column="amount"></result>
+    </resultMap>
+    <select id="getStatisticDetailDo"
+            resultType="com.citc.nce.auth.postpay.order.entity.PostpayOrderDetail">
+        select order_id,msg_type,tariff_type as msg_sub_type,account_id,
+        operator_code,price/100000 as price,amount/100000 as amount,msg_num as 'usage' from charge_consume_statistic ccs
+        where order_id = #{orderId};
+    </select>
+    <select id="getStatisticDetail"
+            resultType="com.citc.nce.auth.postpay.order.vo.PostpayOrderDetailVo">
+        select order_id,msg_type,tariff_type as msg_sub_type,account_id,case msg_type
+                                                                            when 1 then (select account_name
+                                                                                         from csp_customer_chatbot_account
+                                                                                         where csp_customer_chatbot_account.chatbot_account_id = ccs.account_id
+                                                                                           and csp_customer_chatbot_account.deleted = 0)
+                                                                            when 2 then (select account_name
+                                                                                         from csp_video_sms_account
+                                                                                         where csp_video_sms_account.account_id = ccs.account_id
+                                                                                           and csp_video_sms_account.deleted = 0)
+                                                                            when 3 then (select account_name
+                                                                                         from csp_sms_account
+                                                                                         where csp_sms_account.account_id = ccs.account_id
+                                                                                           and csp_sms_account.deleted = 0)
+                                                                            when 4 then (select account_name
+                                                                                         from csp_reading_letter_account
+                                                                                         where csp_reading_letter_account.account_id = ccs.account_id
+                                                                                           and csp_reading_letter_account.deleted = 0)
+            end as account,
+               operator_code,price/100000 as price,amount/100000 as amount,msg_num as 'usage' from charge_consume_statistic ccs
+        where order_id = #{orderId} order by msg_type,account,msg_sub_type;
+    </select>
+    <select id="generateBill"
+            resultType="com.citc.nce.auth.csp.recharge.entity.ChargeConsumeStatistic">
+        SELECT sum(price*charge_num) as amount, #{orderId} as order_id,${paymentDays} as payment_days,customer_id ,msg_type ,account_id ,tariff_type ,
+                                                           operator_code,price,pay_type,sum(charge_num) as msg_num,consume_type from charge_consume_record ccr
+                                                    where pay_type =#{payType}
+                                                      and processed=1
+                                                      and deleted=0
+        <![CDATA[ and update_time >= #{start}
+                                                      and update_time < #{end}
+          ]]>
+        and customer_id =#{customerId}
+                                                    group by customer_id ,msg_type ,operator_code ,account_id ,tariff_type , price,consume_type
+    </select>
+</mapper>

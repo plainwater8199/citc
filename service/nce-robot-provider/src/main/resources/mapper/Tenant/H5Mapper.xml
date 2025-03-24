@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.h5.dao.H5Mapper">
+
+
+    <update id="updateMssIDNullById">
+        UPDATE h5 SET mss_id = null WHERE id in
+        <foreach item="id" collection="h5IdList" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

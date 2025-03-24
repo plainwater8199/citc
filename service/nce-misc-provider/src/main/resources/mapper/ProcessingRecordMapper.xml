@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.misc.record.mapper.ProcessingRecordMapper">
+
+    <select id="findProcessingRecordList" resultType="com.citc.nce.misc.record.dto.ProcessingRecordDto">
+        SELECT pr.id,pr.business_id,pr.business_type,pr.operate_time,pr.processing_content,
+               pr.processing_user_id,pr.remark
+        FROM processing_record pr
+        WHERE pr.DELETED = 0
+          AND pr.business_id = #{businessId}
+          <if test="businessType != null">
+              AND pr.business_type = #{businessType}
+          </if>
+          <if test="businessTypeList != null">
+              AND pr.business_type IN
+              <foreach collection="businessTypeList" open="(" close=")" separator="," item="item">
+                  #{item}
+              </foreach>
+          </if>
+        ORDER BY pr.operate_time DESC
+    </select>
+</mapper>

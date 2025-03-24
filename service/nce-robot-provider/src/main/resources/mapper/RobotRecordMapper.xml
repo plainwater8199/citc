@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.robot.dao.RobotRecordDao">
+
+    <!-- 创建表SQL，参数为表名 -->
+    <update id="createTable" parameterType="string">
+        CREATE TABLE ${tableName} (
+                                      `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '用户信息表主键,唯一值',
+                                      `message` longtext COMMENT '消息内容',
+                                      `conversation_id` varchar(64) DEFAULT NULL COMMENT '会话id',
+                                      `serial_num` bigint(20) DEFAULT NULL COMMENT '对话序列号',
+                                      `send_person` varchar(50) DEFAULT NULL COMMENT '发送人',
+                                      `message_type` tinyint(1) DEFAULT NULL COMMENT '消息类型',
+                                      `creator` varchar(64) NOT NULL COMMENT '创建者',
+                                      `create_time` datetime NOT NULL,
+                                      `updater` varchar(64) DEFAULT NULL COMMENT '更新者',
+                                      `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+                                      `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0未删除   1已删除',
+                                      `deleted_time` datetime DEFAULT NULL COMMENT '删除时间',
+                                      `chatbot_account_id` varchar(64) DEFAULT NULL,
+                                      `channel_type` tinyint(4) DEFAULT NULL,
+                                      `mobile_num` varchar(16) DEFAULT NULL,
+                                      PRIMARY KEY (`id`),
+                                      KEY `id` (`id`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='聊天记录';
+    </update>
+
+    <select id="queryChannelSendQuantity" resultType="com.citc.nce.robot.vo.SendQuantityResp">
+        select channel_type,COUNT(channel_type) as quantity from ${tableName}
+        where
+        deleted = 0
+        AND channel_type != 0
+<!--        AND send_person = '2'-->
+        <if test="userIdList != null and userIdList.size > 0">
+            AND creator IN
+            <foreach collection="userIdList" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        group by channel_type order by quantity desc
+    </select>
+
+
+    <select id="queryActiveUserByTime"
+            resultType="com.citc.nce.dataStatistics.dto.ResultPerDataDto">
+        SELECT
+        <choose>
+            <when test="timeType == 'hour'">
+                DATE_FORMAT(t.create_time,'%Y-%m-%d %H') AS time,
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.create_time,'%Y-%m-%d') AS time,
+            </otherwise>
+        </choose>
+        COUNT(distinct t.mobile_num) AS sum
+        FROM
+            robot_record t
+        WHERE
+        t.create_time >= #{startDate} and t.create_time <![CDATA[<=]]> #{endDate}
+        <if test="userId != null">
+            and t.creator = #{userId}
+        </if>
+        GROUP BY time;
+    </select>
+
+
+    <select id="queryActiveUserByChatbotId"
+            resultType="com.citc.nce.dataStatistics.dto.ResultPerDataDto">
+        SELECT
+        t.account as chatbotId,
+        COUNT(distinct t.mobile_num) AS sum
+        FROM
+            robot_record t
+        WHERE
+        t.create_time >= #{startDate} and t.create_time <![CDATA[<=]]> #{endDate}
+        <if test="userId != null">
+            and t.creator = #{userId}
+        </if>
+        GROUP BY chatbotId;
+    </select>
+
+    <select id="queryAllActiveUserByTime"
+            resultType="Long">
+        SELECT
+        COUNT(distinct t.mobile_num) AS sum
+        FROM
+            robot_record t
+        WHERE
+        t.create_time >= #{startDate} and t.create_time <![CDATA[<=]]> #{endDate}
+        <if test="userId != null">
+            and t.creator = #{userId}
+        </if>
+        ;
+    </select>
+
+
+</mapper>

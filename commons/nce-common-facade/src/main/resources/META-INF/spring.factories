@@ -1,0 +1,7 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+ com.citc.nce.common.facadeserver.config.FacadeServerAutoConfig,\
+ com.citc.nce.common.facadeserver.swagger.SwaggerAutoConfiguration,\
+ com.citc.nce.common.facadeserver.swagger.SwaggerWebConfiguration,\
+ com.citc.nce.common.facadeserver.swagger.SwaggerBeanPostProcessor,\
+ com.citc.nce.common.facadeserver.verifyCaptcha.resources.MyCaptchaStore,\
+ com.citc.nce.common.facadeserver.verifyCaptcha.Aspect.VerifyCaptchaAspectImpl

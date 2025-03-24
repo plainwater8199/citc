@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.citc.nce.common.openfeign.core.config.FeignAutoConfig

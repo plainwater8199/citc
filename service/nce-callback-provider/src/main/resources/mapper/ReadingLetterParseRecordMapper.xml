@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.readingLetter.dao.ReadingLetterParseRecordDao">
+
+    <select id="selectShortUrlIdList" resultType="com.citc.nce.readingLetter.vo.ShortUrlIdListVo">
+        select short_url_id,day_str,count(record.send_result) as success_number,operator_code
+        from ${tableName} record
+        where record.day_str=#{dayStr} and record.send_result=0 and sms_type = 2
+        group by short_url_id,day_str,operator_code
+    </select>
+    <select id="selectFifthReadingLetterToDailyReport"
+            resultType="com.citc.nce.readingLetter.vo.DailyReportListVo">
+        select task_id,chatbot_account,count(record.send_result) as
+        success_number,platform_template_id,group_send_id,source_type
+        from ${tableName} record
+        where record.day_str=#{dayStr} and record.send_result=0 and sms_type = 1
+        group by task_id,chatbot_account,group_send_id,platform_template_id,source_type
+    </select>
+
+
+    <select id="selectTodayDailyReport" resultType="com.citc.nce.readingLetter.vo.ShortUrlIdListVo">
+        select short_url_id,day_str,count(record.send_result) as success_number, operator_code
+        from reading_letter_parse_record record
+        where record.day_str=#{dayStr} and record.send_result=0 and sms_type = 2
+        and customer_id=#{customerId}
+        <if test="shortUrlIds!= null and shortUrlIds.size() >0">
+            and short_url_id in
+            <foreach collection="shortUrlIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        group by short_url_id,day_str,operator_code
+
+    </select>
+
+    <select id="selectTodayFifthDailyReport" resultType="com.citc.nce.readingLetter.vo.DailyReportListVo">
+        select task_id,count(record.send_result) as
+        success_number,chatbot_account,group_send_id,platform_template_id,source_type
+        from reading_letter_parse_record record
+        where record.day_str=#{dayStr} and record.send_result=0 and sms_type = 1
+        and customer_id=#{customerId}
+        <if test="planIds!= null and planIds.size() >0">
+            and group_send_id in
+            <foreach collection="planIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and source_type = 1
+        </if>
+
+        <if test="chatbotAccounts!= null and chatbotAccounts.size() >0">
+            and chatbot_account in
+            <foreach collection="chatbotAccounts" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        group by task_id,chatbot_account,platform_template_id,group_send_id,source_type
+
+    </select>
+
+    <select id="selectTodayDailyReportOfCsp" resultType="com.citc.nce.readingLetter.vo.CspReadingLetterNumVo">
+        select operator_code,count(*) as num
+        from reading_letter_parse_record record
+        where record.send_result=0 and sms_type = #{smsType}
+        <if test="operatorCode!= null and operatorCode !='' ">
+            and operator_code = #{operatorCode}
+        </if>
+        and day_str = #{dayStr}
+        and customer_id like concat(#{customerId}, '%')
+        group by operator_code
+    </select>
+
+    <!-- 创建表SQL，参数为表名 -->
+    <update id="createTableIfNotExist" parameterType="string">
+        CREATE TABLE IF NOT EXISTS ${tableName} (
+        `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+        `send_result` tinyint(4) NOT NULL DEFAULT '0' COMMENT '发送结果(0成功 其他为失败)',
+        `short_url_id` bigint(20) DEFAULT NULL COMMENT '系统表中短链的主键id',
+        `operator_code` tinyint(4) DEFAULT NULL COMMENT '运营商编码： 0:硬核桃，1：联通，2：移动，3：电信',
+        `receipt_time` datetime NOT NULL COMMENT '回执时间',
+        `creator` varchar(64) DEFAULT NULL COMMENT '创建者',
+        `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+        `updater` varchar(64) DEFAULT NULL COMMENT '更新者',
+        `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+        `customer_id` varchar(15) NOT NULL,
+        `describ` varchar(100) DEFAULT NULL COMMENT '描述',
+        `platform_template_id` bigint(20) DEFAULT NULL COMMENT '平台模板id',
+        `day_str` varchar(8) DEFAULT NULL COMMENT '日期: 例如 20240718',
+        `sms_type` tinyint(4) DEFAULT NULL COMMENT '信息类型 1:5G阅信 2:阅信+',
+        `task_id` varchar(100) DEFAULT NULL COMMENT '5G阅信发送时供应商返回的任务id',
+        `group_send_id` bigint(20) DEFAULT NULL COMMENT '本条5G阅信所属于的群发计划id或开发者服务应用id',
+        `source_type` tinyint(4) DEFAULT NULL COMMENT '来源(如果是5G阅信时存在该值 1:群发 2:开发者服务)',
+        `phone_num` varchar(14) DEFAULT NULL COMMENT '手机号',
+        `short_url` varchar(100) DEFAULT NULL COMMENT '短链',
+        `chatbot_account` varchar(100) DEFAULT NULL COMMENT '蜂动ChatbotAccount',
+        PRIMARY KEY (`id`),
+        KEY `reading_letter_parse_record_short_url_id_IDX` (`short_url_id`,`day_str`,`send_result`) USING BTREE,
+        KEY `reading_letter_parse_record_day_IDX` (`day_str`,`send_result`,`short_url_id`) USING BTREE,
+        KEY `reading_letter_parse_record_day_str_IDX` (`day_str`,`send_result`,`operator_code`,`customer_id`) USING
+        BTREE
+        ) ENGINE=InnoDB AUTO_INCREMENT=1813868216448450562 DEFAULT CHARSET=utf8 COMMENT='阅信+解析回执记录表';
+    </update>
+
+</mapper>

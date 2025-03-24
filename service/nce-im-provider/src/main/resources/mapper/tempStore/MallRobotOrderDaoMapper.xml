@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.mall.order.mapper.MallRobotOrderDao">
+
+
+    <select id="listByIdsDel" resultType="com.citc.nce.im.mall.order.entity.MallRobotOrderDo">
+        select id, order_name, request_type, request_url, header_list, request_body_type, request_raw_type, body_list,
+        response_type, response_list, depiction, order_type, request_url_name, creator, create_time, updater,
+        update_time, deleted, deleted_time
+        from mall_robot_order
+        where id in
+        <foreach collection="ids" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

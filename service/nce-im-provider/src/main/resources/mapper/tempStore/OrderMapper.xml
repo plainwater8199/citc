@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.materialSquare.mapper.OrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.robot.api.tempStore.domain.Order">
+        <result column="order_id" property="orderId"/>
+        <result column="order_num" property="orderNum"/>
+        <result column="temp_type" property="tempType"/>
+        <result column="goods_name" property="goodsName"/>
+        <result column="goods_desc" property="goodsDesc"/>
+        <result column="goods_id" property="goodsId"/>
+        <result column="goods_snapshot" property="goodsSnapshot"/>
+        <result column="card_style_content" property="cardStyleContent"/>
+        <result column="creator" property="creator"/>
+        <result column="updater" property="updater"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="pay_time" property="payTime"/>
+        <result column="pay_status" property="payStatus"/>
+        <result column="order_money" property="orderMoney"/>
+        <result column="deleted" property="deleted"/>
+        <result column="remake" property="remake"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        order_id
+        , order_num, temp_type, goods_name, goods_id, goods_snapshot, card_style_content, creator, updater, create_time, update_time,
+                pay_time, pay_status, order_money, deleted, remake
+    </sql>
+    <select id="getOrderSnapshot" resultType="java.lang.String" parameterType="java.lang.Long">
+        select goods_snapshot
+        from ts_order
+        where order_id=#{orderId}
+    </select>
+    <select id="getCardStyleContent" resultType="java.lang.String" parameterType="java.lang.Long">
+        select card_style_content
+        from ts_order
+        where order_id=#{orderId}
+    </select>
+
+</mapper>

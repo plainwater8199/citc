@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.invoice.dao.InvoiceInfoCustomerMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.auth.invoice.domain.InvoiceInfoCustomer">
+        <id column="iicus_id" property="iicusId" />
+        <result column="customer_id" property="customerId" />
+        <result column="header_type" property="headerType" />
+        <result column="json_body" property="jsonBody" />
+        <result column="updater" property="updater" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        iicus_id, customer_id, header_type, json_body, updater, update_time
+    </sql>
+
+</mapper>

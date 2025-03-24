@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.readingLetter.template.dao.ReadingLetterTemplateDao">
+
+    <select id="selectReadingLetterTemplates" resultMap="readingLetterTemplateSimpleVo">
+        select id, template_name, create_time, customer_id, module_information,template_type,thumbnail
+        from reading_letter_template t
+        where customer_id = #{customerId}  and deleted=0
+        <if test="templateName !=null and templateName!=''">
+            and template_name like CONCAT('%',#{templateName},'%')
+        </if>
+<!--        这里选择了非未审核状态-->
+        <if test="status != -1 and status != null">
+            and exists(select 1 from reading_letter_template_audit a where a.template_id=t.id and a.deleted=0
+            <if test="operatorCode!=null ">
+                and a.operator_code = #{operatorCode}
+            </if>
+            <if test="smsType!=null">
+                and a.sms_type = #{smsType}
+            </if>
+            <if test="status != null">
+                and a.status = #{status}
+            </if>
+            )
+        </if>
+        <!-- 这里选择了全部状态的审核记录, 且其他的筛选条件不为空 -->
+        <if test="status == null and (operatorCode!=null or smsType!=null)">
+            and exists(select 1 from reading_letter_template_audit a where a.template_id=t.id and a.deleted=0
+            <if test="operatorCode!=null ">
+                and a.operator_code = #{operatorCode}
+            </if>
+            <if test="smsType!=null">
+                and a.sms_type = #{smsType}
+            </if>
+            )
+        </if>
+
+        <!--  这里选择了未审核状态, 不能存在审核的记录-->
+        <if test="status == -1">
+            and not exists(select 1 from reading_letter_template_audit a where a.template_id=t.id and a.deleted=0
+            <if test="operatorCode!=null ">
+                and a.operator_code = #{operatorCode}
+            </if>
+            <if test="smsType!=null">
+                and a.sms_type = #{smsType}
+            </if>
+            )
+        </if>
+
+    </select>
+
+    <resultMap id="ReadingLetterTemplateSimpleVo" type="com.citc.nce.auth.readingLetter.template.vo.ReadingLetterTemplateSimpleVo">
+        <id property="id" column="id"/>
+        <result property="templateName" column="template_name"/>
+        <result property="createTime" column="creat_time"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="moduleInformation" column="moduleInformation"/>
+        <result property="templateType" column="template_type"/>
+        <result property="thumbnail" column="thumbnail"/>
+        <result property="canEdit" column="can_edit"/>
+        <collection property="templateDetailList" ofType="com.citc.nce.auth.readingLetter.template.vo.ReadingLetterTemplateDetailVo">
+            <result property="smsType" column="sms_type"/>
+            <result property="operatorCode" column="operator_code"/>
+            <result property="auditAccount" column="audit_account"/>
+            <result property="status" column="status"/>
+            <result property="remark" column="remark"/>
+            <result property="applicableTerminal" column="applicable_terminal"/>
+        </collection>
+    </resultMap>
+    <select id="getApprovedTemplateOfFifth"
+            resultMap="ReadingLetterTemplateSimpleVo">
+        select tmp.id, tmp.template_name, tmp.create_time, tmp.customer_id, tmp.module_information,tmp.template_type,tmp.thumbnail,
+        audit.status, audit.operator_code, audit.audit_account, audit.sms_type,
+        audit.applicable_terminal
+
+        from reading_letter_template tmp
+        left join reading_letter_template_audit audit on tmp.id = audit.template_Id
+        where tmp.customer_id = #{customerId}
+        and tmp.deleted=0
+        and audit.sms_type = 1
+        and audit.status = 0
+        and audit.deleted = 0
+        <if test="templateName != null and templateName != ''">
+            and tmp.template_name like concat('%',#{templateName},'%')
+        </if>
+        and audit.audit_account in
+        <foreach item="item" index="index" collection="accounts" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+    <select id="getOneApprovedTemplate"
+            resultMap="ReadingLetterTemplateSimpleVo">
+        select tmp.id, tmp.template_name, tmp.create_time, tmp.customer_id, tmp.module_information,tmp.template_type,tmp.thumbnail,
+        audit.status, audit.operator_code, audit.audit_account, audit.sms_type,
+        audit.applicable_terminal
+
+        from reading_letter_template tmp
+        left join reading_letter_template_audit audit on tmp.id = audit.template_Id
+        where tmp.customer_id = #{customerId}
+        and tmp.deleted=0
+        and audit.sms_type = #{smsType}
+        and audit.status = 0
+        and audit.deleted = 0
+        and tmp.id= #{id}
+        limit 1
+    </select>
+    <resultMap type="com.citc.nce.auth.readingLetter.template.vo.ReadingLetterTemplateSimpleVo" id="readingLetterTemplateSimpleVo">
+        <id property="id" column="id"/>
+        <result property="templateName" column="template_name"/>
+        <result property="createTime" column="create_time"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="moduleInformation" column="module_information"/>
+        <result property="templateType" column="template_type"/>
+        <result property="thumbnail" column="thumbnail"/>
+    </resultMap>
+
+
+
+</mapper>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.messageplan.dao.FifthMessagePlanMapper">
+
+    <select id="selectPlan" resultType="com.citc.nce.auth.messageplan.vo.FifthMessagePlanListVo">
+        select id,
+               plan_id,
+               name,
+               operator,
+               text_message_number,
+               rich_message_number,
+               conversion_number,
+               text_message_price,
+               rich_message_price,
+               conversion_price,
+               amount,
+               status,
+               create_time,
+               (select count(*)
+                from prepayment_order
+                where prepayment_order.plan_id = fifth_message_plan.plan_id
+                  and prepayment_order.deleted_time  = '1000-01-01 00:00:00') as orderTimes
+        from fifth_message_plan
+        where deleted_time  = '1000-01-01 00:00:00' and creator = #{creator}
+        <if test="planId != null and planId != ''">
+            and plan_id like concat("%",#{planId},"%")
+        </if>
+        <if test="operator != null">
+            and operator = #{operator}
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+    </select>
+    <select id="selectPlanDetail" resultType="com.citc.nce.auth.messageplan.vo.FifthMessagePlanVo">
+        select id,
+               plan_id,
+               name,
+               operator,
+               text_message_number,
+               text_message_price,
+               rich_message_number,
+               rich_message_price,
+               conversion_number,
+               conversion_price,
+               amount,
+               status,
+               creator,
+               create_time,
+               updater,
+               update_time,
+               deleted_time,
+               (select count(*)
+                from prepayment_order
+                where prepayment_order.plan_id = fifth_message_plan.plan_id
+                  and prepayment_order.deleted_time  = '1000-01-01 00:00:00') as orderTimes
+        from fifth_message_plan
+        where deleted_time = '1000-01-01 00:00:00'
+          and id = #{id}
+          and creator = #{cspId}
+    </select>
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.csp.contract.dao.ContractManageDao">
+
+    <select id="queryList" parameterType="com.citc.nce.auth.csp.contract.vo.ContractReq"
+            resultType="com.citc.nce.auth.csp.contract.vo.ContractResp">
+        select
+        ccm.id,
+        ccm.contract_status,
+        ccm.contract_name,
+        ccm.customer_id as customerId,
+        uei.enterprise_name,
+        uei.enterprise_account_name    as enterpriseAccountName,
+        ccm.operator_code,
+        ccm.contract_service_code,
+        ccm.contract_service_extra_code,
+        ccm.create_time,
+        ccm.update_time,
+        ccm.agent_info_id,
+        ccm.failure_reason,
+        ccm.channel
+
+        <include refid="sql1"/>
+        order by ccm.update_time desc
+        limit #{pageNo} , #{pageSize}
+    </select>
+
+    <select id="queryListCount" parameterType="com.citc.nce.auth.csp.contract.vo.ContractReq"
+            resultType="java.lang.Long">
+        select count(1)
+        <include refid="sql1"/>
+    </select>
+    <select id="getContractIndustryType"
+            resultType="com.citc.nce.auth.csp.statistics.vo.CspStatisticsIndustryTypeResp">
+        select industry_code_prefix as chatbotIndustryType, COUNT(*) as quantity
+        from chatbot_contract_manage cmc
+        where deleted = 0
+          and contract_status = 30
+        group by chatbotIndustryType
+        order by quantity desc
+    </select>
+
+    <sql id="sql1">
+        from
+        chatbot_contract_manage ccm
+        left join user_enterprise_identification uei on ccm.customer_id = uei.user_id and uei.deleted = 0
+        <where>
+            and ccm.deleted = 0
+            <if test="customerId!=null and customerId!=''">
+                and ccm.customer_id = #{customerId}
+            </if>
+            <if test="contractName!=null and contractName!=''">
+                and ccm.contract_name like CONCAT('%',#{contractName},'%')
+            </if>
+            <if test="contractStatus!=null and contractStatus!=-1">
+                and ccm.contract_status = #{contractStatus}
+            </if>
+            <if test="cspId!=null and cspId!=-1">
+                and ccm.creator = #{cspId}
+            </if>
+            <if test="operatorCode!=null and operatorCode!=-1">
+                and ccm.operator_code = #{operatorCode}
+            </if>
+        </where>
+    </sql>
+
+    <update id="cleanServiceCode" parameterType="com.citc.nce.auth.csp.contract.vo.ContractServiceCodeReq">
+        update chatbot_contract_manage
+        set contract_service_code       = null,
+            contract_service_extra_code = null
+        where id = #{id}
+    </update>
+</mapper>

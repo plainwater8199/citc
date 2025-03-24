@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.tempStore.mapper.GoodsManageLogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.robot.api.tempStore.domain.GoodsManageLog">
+        <id column="log_id" property="logId" />
+        <result column="goods_id" property="goodsId" />
+        <result column="goods_uuid" property="goodsUuid" />
+        <result column="creator" property="creator" />
+        <result column="createTime" property="createTime" />
+        <result column="remark" property="remark" />
+        <result column="operate_type" property="operateType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        log_id, goods_id, goods_uuid, creator, createTime, remark, operate_type
+    </sql>
+
+</mapper>

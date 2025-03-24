@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.robot.dao.RobotSceneNodeDao">
+
+    <select id="getSceneNum" parameterType="java.util.Map"
+            resultType="java.lang.Long">
+        SELECT count(*) FROM robot_scene_node t2 WHERE t2.creator =#{creator} AND t2.deleted=0
+        <if test="chatBotId != null and chatBotId!= ''">
+            and t2.accounts  like concat('%',#{chatBotId},'%')
+        </if>
+        and t2.accounts is not null
+    </select>
+
+    <select id="getProcessNum" parameterType="java.util.Map"
+            resultType="java.lang.Long">
+        SELECT count(*) FROM robot_process_setting_node t2 LEFT JOIN robot_scene_node t3 ON t3.`id`=t2.scene_id AND t2.deleted=t3.deleted
+        WHERE t2.creator =#{creator} and t2.deleted=0
+        <if test="chatBotId != null and chatBotId!= ''">
+            and t3.accounts  like concat('%',#{chatBotId},'%')
+        </if>
+    </select>
+
+</mapper>

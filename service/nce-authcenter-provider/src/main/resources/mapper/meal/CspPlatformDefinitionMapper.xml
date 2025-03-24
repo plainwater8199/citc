@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.authcenter.csp.platformDefinition.dao.CspPlatformDefinitionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.authcenter.csp.platformDefinition.domain.CspPlatformDefinition">
+        <id column="cpd_id" property="cpdId" />
+        <result column="csp_id" property="cspId" />
+        <result column="name" property="name" />
+        <result column="logo" property="logo" />
+        <result column="carousel_chart" property="carouselChart" />
+        <result column="theme_color" property="themeColor" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        cpd_id, csp_id, name, logo, carousel_chart, theme_color
+    </sql>
+
+</mapper>

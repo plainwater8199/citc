@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.developer.dao.DeveloperSendMapper">
+
+    <update id="createTable" parameterType="java.lang.String">
+        DROP TABLE IF EXISTS ${tableName};
+        CREATE TABLE ${tableName}(
+                `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+                `app_id` varchar(64) NOT NULL COMMENT '开发者信息id',
+                `account_type` tinyint(4) NOT NULL COMMENT '账号类型：1-5G消息、2-视频短信消息、3-短信消息',
+                `account_id` varchar(64) DEFAULT NULL COMMENT '客户账号',
+                `platform_template_id` varchar(100) NOT NULL COMMENT '平台模板Id',
+                `phone` varchar(20) NOT NULL COMMENT '电话号码',
+                `call_time` datetime NOT NULL COMMENT '客户调用时间',
+                `call_result` int(1) NOT NULL COMMENT '客户调用结果,0:成功 1:失败',
+                `send_mq_result` int(1) DEFAULT NULL COMMENT '发送MQ结果,0:成功 1:失败',
+                `send_platform_result` int(1) DEFAULT NULL COMMENT '发送平台结果,0:成功 1:失败',
+                `callback_platform_result` int(1) DEFAULT NULL COMMENT '平台回执消息发送结果,0:成功，1:失败,2:未知，3:已阅(5G消息状态)',
+                `callback_result` int(1) DEFAULT NULL COMMENT '回调客户结果0:成功，1:失败,2:无回调',
+                `callback_time` datetime DEFAULT NULL COMMENT '回调客户时间',
+                `call_result_msg` varchar(255) DEFAULT NULL COMMENT '客户调用结果描述',
+                `creator` varchar(64) NOT NULL COMMENT '创建者',
+                `create_time` datetime NOT NULL COMMENT '创建时间',
+                `updater` varchar(64) DEFAULT NULL COMMENT '更新者',
+                `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+                `sms_id` varchar(32) DEFAULT NULL COMMENT '平台消息Id',
+                `custom_sms_id` varchar(32) NOT NULL COMMENT '唯一Id和手机号对应',
+                `batch_number` varchar(32) NOT NULL COMMENT '批次号',
+                `application_unique_id` varchar(32) DEFAULT NULL COMMENT '5G消息类型所属应用',
+                `customer_id` varchar(64) DEFAULT NULL COMMENT '客户登录账号',
+                `csp_id` varchar(64) DEFAULT NULL COMMENT 'cspId',
+                PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='短信开发者调用每日统计表'
+    </update>
+
+    <update id="dropTable" parameterType="string">
+        DROP TABLE IF EXISTS ${tableName};
+    </update>
+
+    <select id="searchDeveloperSend" resultType="com.citc.nce.developer.vo.DeveloperCustomerVo">
+        select
+        csds.id as id,
+        csds.app_id as appId,
+        csds.account_id as accountId,
+        csds.phone as phone,
+        csds.platform_template_id as templateId,
+        csds.platform_template_sign as templateSign,
+        csds.call_result as callResult,
+        csds.call_result_msg as callResultMsg,
+        csds.send_platform_result as sendPlatformResult,
+        csds.callback_platform_result as callbackPlatformResult,
+        csds.call_time as callTime,
+        csds.callback_result as callbackResult,
+        csds.callback_time as callbackTime,
+        csds.customer_id as customerUserId,
+        csds.platform_template_name as templateName,
+        csds.platform_template_message_type as messageType,
+        csds.platform_template_shortcut_button as shortcutButton,
+        csds.platform_template_module_information as templateContent
+        from developer_send csds
+        where csds.customer_id = #{customerUserId}
+        and csds.account_type = #{type}
+        <if test="callTimeStart != null and callTimeStart != ''">
+            and DATE(csds.call_time) &gt;= #{callTimeStart}
+        </if>
+        <if test="callTimeEnd != null and callTimeEnd != ''">
+            and DATE(csds.call_time) &lt;= #{callTimeEnd}
+        </if>
+        <if test="accountId != null and accountId != ''">
+            and csds.account_id = #{accountId}
+        </if>
+        <if test="phone != null and phone != ''">
+            and csds.phone LIKE concat('%',#{phone},'%')
+        </if>
+        <if test="callResult != null">
+            and csds.call_result = #{callResult}
+        </if>
+        <if test="sendPlatformResult != null">
+            <choose>
+                <when test="sendPlatformResult == -1">
+                    and csds.send_platform_result is null
+                </when>
+                <otherwise>
+                    and csds.send_platform_result = #{sendPlatformResult}
+                </otherwise>
+            </choose>
+        </if>
+        <if test="callbackPlatformResult != null">
+            <choose>
+                <when test="callbackPlatformResult == 2">
+                    and csds.callback_platform_result is null
+                </when>
+                <otherwise>
+                    and csds.callback_platform_result = #{callbackPlatformResult}
+                </otherwise>
+            </choose>
+        </if>
+        <if test="callbackResult != null">
+            <choose>
+                <when test="callbackResult == 2">
+                    and  (csds.callback_result = 2 or csds.callback_result is null)
+                </when>
+                <otherwise>
+                    and csds.callback_result = #{callbackResult}
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <select id="cllTrend" resultType="com.citc.nce.developer.vo.DeveloperCllTrendVo">
+        SELECT DATE_FORMAT(call_time,'%H:00') AS time,
+        count(call_result) AS callCount,
+        IFNULL(SUM(call_result = 0),0) AS successCount,
+        IFNULL(SUM(call_result = 1),0) AS failCount
+        FROM developer_send
+        WHERE DATE(call_time) = #{developerStatisticsTimeVo.startTime}
+        and account_type = #{type}
+        <if test="customerUserId != null and customerUserId != ''">
+            and customer_id = #{customerUserId}
+        </if>
+        <if test="developerStatisticsTimeVo.applicationUniqueId != null and developerStatisticsTimeVo.applicationUniqueId != '' ">
+            and application_unique_id = #{developerStatisticsTimeVo.applicationUniqueId}
+        </if>
+        GROUP BY time;
+    </select>
+
+    <select id="sendTrendByUser" resultType="com.citc.nce.developer.vo.DeveloperSendTrendByUserVo">
+        SELECT DATE_FORMAT(call_time,'%H:00') AS time,
+        IFNULL(SUM(callback_platform_result in (0,3)),0) AS successCount,
+        IFNULL(SUM(callback_platform_result = 1),0) AS failCount,
+        IFNULL(SUM(callback_platform_result = 2),0) AS unknownCount,
+        IFNULL(SUM(callback_platform_result = 3),0) AS displayedCount
+        FROM developer_send
+        WHERE DATE(call_time) = #{developerStatisticsTimeVo.startTime}
+        and customer_id = #{customerUserId}
+        <if test="developerStatisticsTimeVo.applicationUniqueId != null and developerStatisticsTimeVo.applicationUniqueId != '' ">
+            and application_unique_id = #{developerStatisticsTimeVo.applicationUniqueId}
+        </if>
+        and account_type = #{type}
+        GROUP BY time;
+    </select>
+
+    <select id="queryCount" resultType="com.citc.nce.developer.vo.DeveloperSendCountVo">
+        select
+            count(id) as count,customer_id from developer_send
+        where call_time >= CURDATE()
+        and customer_id in
+        <foreach item="customerId" collection="customerIds" open="(" separator="," close=")">
+            #{customerId}
+        </foreach>
+        and account_type = #{type}
+        group by customer_id
+    </select>
+    <select id="queryCountAll" resultType="com.citc.nce.developer.vo.DeveloperSendCountVo">
+        select
+        count(id) as count,customer_id from developer_send
+        where account_type = #{type}
+        and customer_id in
+        <foreach item="customerId" collection="customerIds" open="(" separator="," close=")">
+            #{customerId}
+        </foreach>
+        group by customer_id
+    </select>
+
+    <select id="query5gCount" resultType="com.citc.nce.developer.vo.DeveloperSend5gCountVo">
+        select
+            count(id) as count,application_unique_id from developer_send
+        where call_time >= CURDATE()
+          and customer_id in
+          <foreach item="customerId" collection="customerIds" open="(" separator="," close=")">
+             #{customerId}
+          </foreach>
+          and account_type = #{type}
+        group by application_unique_id
+    </select>
+    <select id="query5gCountAll" resultType="com.citc.nce.developer.vo.DeveloperSend5gCountVo">
+        select
+        count(id) as count,application_unique_id from developer_send
+        where account_type = #{type}
+        and customer_id in
+        <foreach item="customerId" collection="customerIds" open="(" separator="," close=")">
+            #{customerId}
+        </foreach>
+        group by application_unique_id
+    </select>
+
+</mapper>

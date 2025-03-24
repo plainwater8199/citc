@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.mapper.RobotGroupSendPlansDao">
+
+    <sql id="conditionQuery">
+        <if test="specificTime != null and specificTime != ''">
+            DATE_FORMAT(send_time,'%Y-%m-%d') &lt;= #{specificTime}
+        </if>
+        <if test="callerAccount != null and callerAccount != ''">
+            and caller_account like #{callerAccount}
+        </if>
+        <if test="creator != null and creator != ''">
+            and creator = #{creator}
+        </if>
+    </sql>
+
+    <select id="countSendAmount" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="long">
+        select count(send_amount) from robot_group_plan_send
+        where
+       <include refid="conditionQuery"></include>
+    </select>
+
+    <select id="queryAnalysisByDay" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT GROUP_CONCAT(t1.id) as planIds,DATE_FORMAT(t2.send_time,'%Y-%m-%d') sendTimeDay
+             ,sum(t2.send_amount) sendAmount
+        FROM robot_group_plan_send t1 LEFT JOIN robot_group_plan_detail t2 ON t1.id = t2.plan_id AND t2.deleted = '0' and t2.plan_status = 2
+        WHERE DATE_FORMAT(t2.send_time ,'%Y-%m-%d') BETWEEN #{startTime} AND #{endTime}
+         AND t1.deleted = '0'
+        <if test="callerAccount != null and callerAccount != ''">
+            and t1.plan_account like CONCAT('%',#{callerAccount},'%')
+        </if>
+        GROUP BY DATE_FORMAT(t2.send_time ,'%Y-%m-%d')
+    </select>
+
+    <select id="queryMassNumHour" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        select count(id) massNum,DATE_FORMAT(send_time ,'%H:00') sendTimeHour
+        from robot_group_plan_detail
+        where DATE_FORMAT(send_time ,'%Y-%m-%d') = #{specificTime}
+        AND deleted = '0' and send_time is not null and plan_status not in (0,7)
+        GROUP BY DATE_FORMAT(send_time ,'%H:00')
+    </select>
+
+    <select id="queryMassNumDay" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        select count(id) massNum,DATE_FORMAT(send_time ,'%Y-%m-%d') sendTimeDay
+        from robot_group_plan_detail
+        where DATE_FORMAT(send_time ,'%Y-%m-%d') BETWEEN #{startTime} AND #{endTime}
+          AND deleted = '0' and send_time is not null and plan_status not in (0,7)
+        GROUP BY sendTimeDay
+    </select>
+
+    <select id="queryAnalysisByHour" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT GROUP_CONCAT(t1.id) as planIds,DATE_FORMAT(t2.send_time ,'%H:00') sendTimeHour
+             ,sum(t2.send_amount) sendAmount
+        FROM robot_group_plan_send t1 LEFT JOIN robot_group_plan_detail t2 ON t1.id = t2.plan_id AND t2.deleted = '0' and t2.plan_status = 2
+        WHERE DATE_FORMAT(t2.send_time ,'%Y-%m-%d') = #{specificTime}
+          AND t1.deleted = '0'
+        <if test="callerAccount != null and callerAccount != ''">
+            and t1.plan_account like CONCAT('%',#{callerAccount},'%')
+        </if>
+        GROUP BY DATE_FORMAT(t2.send_time ,'%H:00')
+    </select>
+
+    <select id="queryPlum" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.RobotGroupSendPlans">
+        select t1.plan_status as planStatus,char_length(t1.plan_account) - char_length(replace(t1.plan_account,',','')) + 1 as account_num,COALESCE(SUM(t2.send_amount),0) send_amount
+        from robot_group_plan_send t1 LEFT JOIN robot_group_plan_detail t2 ON t1.id = t2.plan_id AND t2.deleted = '0'
+--         and t2.plan_status = 2
+        where t1.deleted = '0' AND t2.deleted = '0'
+--         and t2.plan_status = 2
+        <if test="creator != null and creator != ''">
+            and t1.creator = #{creator}
+        </if>
+        <if test="callerAccount != null and callerAccount != ''">
+            and t1.plan_account like CONCAT('%',#{callerAccount},'%')
+        </if>
+        <if test="startTime != null and startTime != ''">
+            and DATE_FORMAT(t1.start_time ,'%Y-%m-%d') = #{startTime}
+        </if>
+        GROUP BY t1.id
+    </select>
+
+    <select id="queryPlanNumHour" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        select count(id) planNum,DATE_FORMAT(create_time ,'%H:00') sendTimeHour
+        from robot_group_plan_send
+        where DATE_FORMAT(create_time ,'%Y-%m-%d') = #{specificTime}
+          AND deleted = '0'
+        GROUP BY sendTimeHour
+    </select>
+
+    <select id="queryPlanNumDay" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        select count(id) planNum,DATE_FORMAT(create_time ,'%Y-%m-%d') sendTimeDay
+        from robot_group_plan_send
+        where DATE_FORMAT(create_time ,'%Y-%m-%d') BETWEEN #{startTime} AND #{endTime}
+          AND deleted = '0'
+        GROUP BY sendTimeDay
+    </select>
+
+    <select id="queryExecuteNumHour" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        select count(id) executeNum,DATE_FORMAT(start_time ,'%H:00') sendTimeHour
+        from robot_group_plan_send
+        where DATE_FORMAT(start_time ,'%Y-%m-%d') = #{specificTime}
+          AND deleted = '0' and plan_status != 0 and is_start = 1
+        GROUP BY sendTimeHour
+    </select>
+
+    <select id="queryExecuteNumDay" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        select count(id) executeNum,DATE_FORMAT(start_time ,'%Y-%m-%d') sendTimeDay
+        from robot_group_plan_send
+        where DATE_FORMAT(start_time ,'%Y-%m-%d') BETWEEN #{startTime} AND #{endTime}
+          AND deleted = '0' and plan_status != 0 and is_start = 1
+        GROUP BY sendTimeDay
+    </select>
+
+    <select id="selectAll" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.PlanResp">
+        select id,plan_name
+        from robot_group_plan_send
+        where creator = #{creator}
+        AND deleted = '0' and plan_status != 0
+        ORDER BY create_time desc
+    </select>
+    <select id="getByGroupSendIds" resultType="com.citc.nce.robot.vo.RobotGroupSendPlansAndChatbotAccount">
+        select id,plan_name
+        from robot_group_plan_send
+        where id in
+        <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        AND deleted = '0'
+        ORDER BY create_time desc
+    </select>
+
+
+</mapper>

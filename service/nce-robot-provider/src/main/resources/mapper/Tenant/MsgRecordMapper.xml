@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.tenant.robot.dao.MsgRecordDao">
+
+    <update id="addMsgRecordFailedReason">
+        ALTER TABLE ${tableName}
+            ADD COLUMN `failed_reason` VARCHAR(255) NULL DEFAULT NULL COMMENT '失败原因';
+    </update>
+
+    <update id="addColumConversationId">
+        ALTER TABLE msg_record
+        ADD COLUMN `conversation_id` VARCHAR(255) NULL DEFAULT NULL COMMENT '会话id';
+    </update>
+    <update id="addSign" parameterType="string">
+        ALTER TABLE ${tableName}
+        ADD COLUMN `sign` VARCHAR(128) NULL DEFAULT NULL COMMENT '签名' AFTER `template_id`;
+    </update>
+
+    <insert id="addConsumeCategoryFiled">
+        alter table msg_record
+        add column consume_category tinyint default 2 comment '消费种类 1:充值 2:预购套餐'
+    </insert>
+    <insert id="insertBatchOfTable">
+
+        INSERT INTO ${tableName} (
+        `phone_num`,
+        `send_result`,
+        `message_id`,
+        `caller_account`,
+        `operator_code`,
+        `message_resource`,
+        `message_content`,
+        `message_type`,
+        `button_content`,
+        `template_id`,
+        `template_name`,
+        `plan_detail_id`,
+        `plan_id`,
+        `sign`,
+        `send_time`,
+        `receipt_time`,
+        `final_result`,
+        `read_time`,
+        `account_type`,
+        `account_id`,
+        `account_name`,
+        `account_dict_code`,
+        `consume_category`,
+        `conversation_id`,
+        `creator`,
+        `create_time`,
+        `updater`,
+        `update_time`
+        )
+        VALUES
+        <foreach collection="records" item="item" separator=",">
+            (
+            #{item.phoneNum},
+            #{item.sendResult},
+            #{item.messageId},
+            #{item.callerAccount},
+            #{item.operatorCode},
+            #{item.messageResource},
+            #{item.messageContent},
+            #{item.messageType},
+            #{item.buttonContent},
+            #{item.templateId},
+            #{item.templateName},
+            #{item.planDetailId},
+            #{item.planId},
+            #{item.sign},
+            #{item.sendTime},
+            #{item.receiptTime},
+            #{item.finalResult},
+            #{item.readTime},
+            #{item.accountType},
+            #{item.accountId},
+            #{item.accountName},
+            #{item.accountDictCode},
+            #{item.consumeCategory},
+            #{item.conversationId},
+            #{item.creator},
+            #{item.createTime},
+            #{item.updater},
+            #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+
+    <update id="updateAccountId" parameterType="string">
+        ALTER TABLE ${tableName}
+        CHANGE COLUMN `account_id` `account_id` VARCHAR (64) NULL DEFAULT NULL COMMENT '账号id' AFTER `account_type`;
+    </update>
+
+    <!-- 创建表SQL，参数为表名 -->
+    <update id="createTable" parameterType="string">
+        CREATE TABLE IF NOT EXISTS ${tableName}
+        (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+            `phone_num` varchar(11) NOT NULL COMMENT '手机号',
+            `send_result` tinyint(4) NOT NULL DEFAULT '0' COMMENT '发送结果(0 未知 1已送达 2消息已阅 3发送失败)',
+            `message_id` varchar(64) NOT NULL DEFAULT '0' COMMENT '消息id',
+            `caller_account` varchar(64) DEFAULT NULL COMMENT '主叫账号',
+            `operator_code` tinyint(4) NOT NULL DEFAULT '0' COMMENT '运营商编码： 0:硬核桃，1：联通，2：移动，3：电信',
+            `message_resource` tinyint(4) NOT NULL COMMENT '来源 1 群发 2 机器人 3测试发送',
+            `message_content` text CHARACTER SET utf8mb4 COMMENT '消息内容',
+            `message_type` tinyint(4) DEFAULT NULL COMMENT '消息类型',
+            `button_content` varchar(4096) CHARACTER SET utf8mb4 DEFAULT NULL COMMENT '按钮内容',
+            `template_id` bigint(20) DEFAULT NULL COMMENT '模板id',
+            `sign` varchar(128) DEFAULT NULL COMMENT '签名',
+            `template_name` varchar(64) NOT NULL COMMENT '模板名称',
+            `plan_detail_id` bigint(20) NOT NULL COMMENT '节点id',
+            `plan_id` bigint(20) NOT NULL COMMENT '计划Id',
+            `send_time` datetime DEFAULT NULL COMMENT '发送时间',
+            `receipt_time` datetime DEFAULT NULL COMMENT '回执时间',
+            `final_result` tinyint(4) NOT NULL COMMENT '最终结果',
+            `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
+            `account_type` tinyint(4) DEFAULT NULL COMMENT '账号类型：1-5G消息、2-视频短信消息、3-短信消息',
+            `account_id` varchar(64) DEFAULT NULL COMMENT '账号id',
+            `account_name` varchar(128) DEFAULT NULL COMMENT '账号名称',
+            `account_dict_code` varchar(25) DEFAULT NULL COMMENT '账号通道编码',
+            `conversation_id` varchar(255) DEFAULT NULL COMMENT '会话id',
+            `creator` varchar(64) DEFAULT NULL COMMENT '创建者',
+            `create_time` datetime NOT NULL COMMENT '创建时间',
+            `updater` varchar(64) DEFAULT NULL COMMENT '更新者',
+            `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+            `failed_reason` varchar(255) DEFAULT NULL COMMENT '失败原因',
+            `consume_category` tinyint(4) DEFAULT '2' COMMENT '消费种类 1:充值 2:预购套餐',
+            PRIMARY KEY (`id`) USING BTREE,
+            KEY `idx_account_type` (`account_type`),
+            KEY `idx_plan_detail_id` (`plan_detail_id`),
+            KEY `idx_creator` (`creator`),
+            KEY `idx_send_result` (`send_result`),
+            KEY `idx_phone_num` (`phone_num`),
+            KEY `idx_message_id` (`message_id`),
+            KEY `idx_account_id` (`account_id`)
+            ) ENGINE=InnoDB AUTO_INCREMENT=1834805756213391362 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='消息记录表'
+    </update>
+
+    <update id="dropTable" parameterType="string">
+        DROP TABLE IF EXISTS ${tableName};
+    </update>
+    <update id="clearTable" parameterType="string">
+        TRUNCATE `${tableName}`;
+    </update>
+
+    <update id="updateStatusBatchByMsgId">
+
+        update ${tableName}
+        set send_result = #{sendResult},
+        final_result = #{finalResult},
+        update_time = #{updateTime}
+        where
+        message_id IN
+        <foreach collection="messageIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+    <update id="updateMsgRecordConsumeCategory">
+        update ${tableName}
+        set consume_category = 1
+        where message_id = #{localMessageId}
+        and consume_category = 2
+        and phone_num = #{phoneNum}
+    </update>
+
+
+    <select id="queryRobotSend" parameterType="string" resultType="com.citc.nce.dataStatistics.dto.MsgStatisticsDto">
+        SELECT COUNT(1) num,
+        DATE_FORMAT(send_time, '%H:00') sendTime,
+        caller_account as operator,
+        message_resource,
+        creator
+        FROM robot_phone_result
+        WHERE DATE_FORMAT(send_time, '%Y-%m-%d') = #{yesterday}
+        AND message_resource = '2'
+        GROUP BY sendTimeHour, operator, message_resource, creator
+    </select>
+
+
+    <select id="queryUnknow" parameterType="string" resultType="com.citc.nce.dataStatistics.dto.MsgStatisticsDto">
+        SELECT COUNT(1) num,
+        plan_id,
+        send_result,
+        plan_detail_id,
+        DATE_FORMAT(send_time, '%H:00') sendTimeHour,
+        DATE_FORMAT(send_time, '%Y-%m-%d') sendTimeDay,
+        caller_account AS operator,
+        creator
+        from robot_phone_result
+        WHERE DATE_FORMAT(send_time, '%Y-%m-%d') = #{yesterday}
+        AND send_result = '0'
+        GROUP BY plan_id, send_result, plan_detail_id, sendTimeDay, sendTimeHour, caller_account, creator
+    </select>
+
+    <select id="querySuccess" parameterType="string" resultType="com.citc.nce.dataStatistics.dto.MsgStatisticsDto">
+        SELECT COUNT(1) num,
+        plan_id,
+        send_result,
+        plan_detail_id,
+        DATE_FORMAT(receipt_time, '%H:00') sendTimeHour,
+        DATE_FORMAT(receipt_time, '%Y-%m-%d') sendTimeDay,
+        caller_account AS operator,
+        creator,
+        DATE_FORMAT(send_time, '%Y-%m-%d') otherTimeDay
+        from robot_phone_result
+        WHERE DATE_FORMAT(receipt_time, '%Y-%m-%d') = #{yesterday}
+        AND (send_result = '1' or send_result = '6')
+        GROUP BY plan_id, send_result, plan_detail_id, sendTimeDay, sendTimeHour, caller_account, creator, otherTimeDay
+    </select>
+
+    <select id="queryFailed" parameterType="string" resultType="com.citc.nce.dataStatistics.dto.MsgStatisticsDto">
+        SELECT COUNT(1) num,
+        plan_id,
+        send_result,
+        plan_detail_id,
+        DATE_FORMAT(receipt_time, '%H:00') sendTimeHour,
+        DATE_FORMAT(receipt_time, '%Y-%m-%d') sendTimeDay,
+        caller_account AS operator,
+        creator,
+        DATE_FORMAT(send_time, '%Y-%m-%d') otherTimeDay
+        from robot_phone_result
+        WHERE DATE_FORMAT(receipt_time, '%Y-%m-%d') = #{yesterday}
+        AND send_result = '2'
+        GROUP BY plan_id, send_result, plan_detail_id, sendTimeDay, sendTimeHour, caller_account, creator, otherTimeDay
+    </select>
+
+    <select id="queryRead" parameterType="string" resultType="com.citc.nce.dataStatistics.dto.MsgStatisticsDto">
+        SELECT COUNT(1) num,
+        plan_id,
+        send_result,
+        plan_detail_id,
+        DATE_FORMAT(read_time, '%H:00') sendTimeHour,
+        DATE_FORMAT(read_time, '%Y-%m-%d') sendTimeDay,
+        caller_account AS operator,
+        creator,
+        DATE_FORMAT(send_time, '%Y-%m-%d') otherTimeDay
+        from robot_phone_result
+        WHERE DATE_FORMAT(read_time, '%Y-%m-%d') = #{yesterday}
+        AND send_result = '6'
+        GROUP BY plan_id, send_result, plan_detail_id, sendTimeDay, sendTimeHour, caller_account, creator, otherTimeDay
+    </select>
+
+    <select id="querySendAmount" parameterType="string" resultType="com.citc.nce.dataStatistics.dto.MsgStatisticsDto">
+        SELECT COUNT(1) num,
+        plan_id,
+        send_result,
+        plan_detail_id,
+        DATE_FORMAT(send_time, '%H:00') sendTimeHour,
+        DATE_FORMAT(send_time, '%Y-%m-%d') sendTimeDay,
+        caller_account AS operator,
+        creator
+        from robot_phone_result
+        WHERE DATE_FORMAT(send_time, '%Y-%m-%d') = #{yesterday}
+        GROUP BY plan_id, send_result, plan_detail_id, sendTimeDay, sendTimeHour, caller_account, creator
+    </select>
+
+    <select id="countVideoSend" resultType="com.citc.nce.robot.vo.messagesend.SimpleMessageSendNumberDetail">
+        select account_id as account, count(*) as `usage`
+        from msg_record
+        where creator = #{customerId}
+        and account_type = 2
+        and consume_category=2
+        and send_result in (1,6)
+        <if test="start != null">
+            and send_time &gt;= #{start}
+        </if>
+        <if test="end != null">
+            and send_time &lt;= #{end}
+        </if>
+        group by account_id
+    </select>
+
+    <select id="countSmsSend" resultType="com.citc.nce.robot.vo.messagesend.SimpleMessageSendNumberDetail">
+        select account_id as account, count(*) as `usage`
+        from msg_record
+        where creator = #{customerId}
+        and account_type = 3
+        and consume_category=2
+        and send_result in (1,6)
+        <if test="start != null">
+            and send_time &gt;= #{start}
+        </if>
+        <if test="end != null">
+            and send_time &lt;= #{end}
+        </if>
+        group by account_id
+    </select>
+    <select id="count5gTextSend" resultType="com.citc.nce.robot.vo.messagesend.SimpleMessageSendNumberDetail">
+        select account_id as account,
+        operator_code as operator,
+        count(*) as `usage`
+        from msg_record
+        where creator = #{customerId}
+        and account_type = 1
+        and consume_category=2
+        and conversation_id is null
+        and message_type in (1,8)
+        and send_result in (1,6)
+        <if test="start != null">
+            and send_time &gt;= #{start}
+        </if>
+        <if test="end != null">
+            and send_time &lt;= #{end}
+        </if>
+        group by operator_code,account_id
+    </select>
+    <select id="count5gRichSend" resultType="com.citc.nce.robot.vo.messagesend.SimpleMessageSendNumberDetail">
+        select account_id as account,
+        operator_code as operator,
+        count(*) as `usage`
+        from msg_record
+        where creator = #{customerId}
+        and account_type = 1
+        and consume_category=2
+        and conversation_id is null
+        and message_type in (2,3,4,5,6,7)
+        and send_result in (1,6)
+        <if test="start != null">
+            and send_time &gt;= #{start}
+        </if>
+        <if test="end != null">
+            and send_time &lt;= #{end}
+        </if>
+        group by operator_code,account_id
+    </select>
+    <select id="countConversationSend" resultType="com.citc.nce.robot.vo.messagesend.SimpleMessageSendNumberDetail">
+        select account_id as account,
+        operator_code as operator,
+        count(*) as `usage`
+        from msg_record
+        where creator = #{customerId}
+        and account_type = 1
+        and consume_category=2
+        and conversation_id is not null
+        and send_result in (1,6)
+        <if test="start != null">
+            and send_time &gt;= #{start}
+        </if>
+        <if test="end != null">
+            and send_time &lt;= #{end}
+        </if>
+        group by operator_code,account_id
+    </select>
+
+    <select id="count5gFallbackSend"
+            resultType="com.citc.nce.robot.vo.messagesend.SimpleMessageSendNumberDetail">
+        select account_id as account,
+        operator_code as operator,
+        count(*) as `usage`
+        from msg_record
+        where creator = #{customerId}
+        and account_type = 1
+        and send_result = 4
+        and consume_category=2
+        <if test="start != null">
+            and send_time &gt;= #{start}
+        </if>
+        <if test="end != null">
+            and send_time &lt;= #{end}
+        </if>
+        group by operator_code,account_id
+    </select>
+    <select id="querySendAccountTypeListBetween"
+            resultType="com.citc.nce.robot.dto.MsgRecordAccountTypeMessageSourceDto">
+        select account_type as accountType, message_resource as messageSource
+        from msg_record
+        where creator = #{customerId}
+        and create_time between #{start} and #{end}
+        group by account_type, message_resource
+    </select>
+
+
+</mapper>

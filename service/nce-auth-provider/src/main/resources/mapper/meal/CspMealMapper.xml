@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.meal.dao.CspMealMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.auth.meal.domain.CspMeal">
+        <id column="id" property="id"/>
+        <result column="meal_id" property="mealId"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="customer_number" property="customerNumber"/>
+        <result column="price" property="price"/>
+        <result column="status" property="status"/>
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="updater" property="updater"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted_time" property="deletedTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, meal_id, name, type, customer_number, price, status, creator, create_time, updater, update_time, deleted_time
+    </sql>
+
+    <sql id="queryPage_exportList">
+        select
+        <include refid="Base_Column_List"></include>
+        from csp_meal
+        <where>
+            <if test="query.type !=null">
+                and type =#{query.type}
+            </if>
+            <if test="query.queryStr != null and query.queryStr != '' ">
+                and (
+                meal_id like concat('%', #{query.queryStr}, '%') or
+                name like concat('%', #{query.queryStr}, '%')
+                )
+            </if>
+            <if test="query.status != null">
+                and status = #{query.status}
+            </if>
+            <if test="true">
+                and deleted_time ='1000-01-01 00:00:00'
+            </if>
+        </where>
+        order by create_time desc
+    </sql>
+
+
+    <select id="queryPage" resultType="com.citc.nce.auth.meal.vo.meal.CspMealPageInfo">
+        <include refid="queryPage_exportList"></include>
+    </select>
+
+    <select id="exportList" resultType="com.citc.nce.auth.meal.vo.meal.CspMealPageInfo">
+        <include refid="queryPage_exportList"></include>
+    </select>
+
+</mapper>

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.dataStatistics.dao.ProcessQuantityStatisticDao">
+
+    <!-- 创建表SQL，参数为表名 -->
+    <update id="createTable" parameterType="string">
+        CREATE TABLE ${tableName} (
+                                      `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '表主键',
+                                      `operator_type` tinyint(4) NOT NULL COMMENT '运营商类型',
+                                      `chatbot_account_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '账户id',
+                                      `robot_scene_node_id` bigint(20) DEFAULT NULL COMMENT '场景id',
+                                      `robot_process_setting_node_id` bigint(20) DEFAULT NULL COMMENT '流程id',
+                                      `process_triggers_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '流程触发数量',
+                                      `process_completed_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '流程完成数量',
+                                      `bottom_return_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '兜底回复数量',
+                                      `process_completion_rate` decimal(10,2) DEFAULT '0.00' COMMENT '流程完成率',
+                                      `hours` datetime NOT NULL COMMENT '时间(小时)',
+                                      `creator` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '创建者',
+                                      `create_time` datetime NOT NULL COMMENT '创建时间',
+                                      `updater` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '更新人',
+                                      `update_time` datetime NOT NULL COMMENT '更新时间',
+                                      `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否删除 默认0 未删除  1 删除',
+                                      `deleted_time` datetime DEFAULT NULL COMMENT '删除时间戳',
+                                      PRIMARY KEY (`id`) USING BTREE
+        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程统计表';
+
+    </update>
+
+    <select id="getProcessQuantityResp" parameterType="java.util.Map"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityResp">
+        SELECT SUM(t1.process_triggers_num) AS processTriggersSumNum,SUM(t1.process_completed_num) AS processCompletedSumNum,SUM(t1.bottom_return_num) AS bottomReturnSumNum FROM process_quantity_yesterday t1
+        WHERE t1.creator =#{creator}  and t1.hours &gt;=#{btime} and t1.hours &lt;=#{etime}
+        <if test="robotSceneNodeId != null and robotSceneNodeId!= ''">
+            and t1.robot_scene_node_id =#{robotSceneNodeId}
+        </if>
+        <if test="robotProcessSettingNodeId != null and robotProcessSettingNodeId!= ''">
+            and t1.robot_process_setting_node_id =#{robotProcessSettingNodeId}
+        </if>
+    </select>
+
+    <select id="getProcessQuantityYesterdays" parameterType="java.util.Map"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityAllResp">
+        SELECT t1.hours AS createTime,SUM(t1.process_triggers_num) AS processTriggersSumNum,SUM(t1.process_completed_num) AS processCompletedSumNum,SUM(t1.bottom_return_num) AS bottomReturnSumNum FROM process_quantity_yesterday t1
+        WHERE t1.creator =#{creator}  and t1.hours &gt;=#{btime} and t1.hours &lt;=#{etime}
+        <if test="robotSceneNodeId != null and robotSceneNodeId!= ''">
+            and t1.robot_scene_node_id =#{robotSceneNodeId}
+        </if>
+        <if test="robotProcessSettingNodeId != null and robotProcessSettingNodeId!= ''">
+            and t1.robot_process_setting_node_id =#{robotProcessSettingNodeId}
+        </if>
+        GROUP BY t1.hours ORDER BY t1.hours
+    </select>
+
+    <select id="getProcessQuantityNum" parameterType="java.util.Map"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityTableResp">
+        SELECT t1.robot_scene_node_id as robotSceneNodeId, t2.scene_name AS sceneName,t1.robot_process_setting_node_id as robotProcessSettingNodeId,t3.process_name AS processName,t3.derail AS derail,SUM(t1.process_triggers_num) AS processTriggersSumNum,SUM(t1.process_completed_num) AS processCompletedSumNum,SUM(t1.bottom_return_num) AS bottomReturnSumNum,t1.hours FROM process_quantity_yesterday t1
+        LEFT JOIN robot_scene_node t2 ON t1.robot_scene_node_id=t2.id LEFT JOIN robot_process_setting_node t3 ON t3.`id`=t1.robot_process_setting_node_id
+        WHERE t1.creator =#{creator} and t1.hours &gt;=#{btime} and t1.hours &lt;=#{etime}
+        <if test="robotSceneNodeId != null and robotSceneNodeId!= ''">
+            and t1.robot_scene_node_id =#{robotSceneNodeId}
+        </if>
+        <if test="robotProcessSettingNodeId != null and robotProcessSettingNodeId!= ''">
+            and t1.robot_process_setting_node_id =#{robotProcessSettingNodeId}
+        </if>
+        GROUP BY  t1.robot_process_setting_node_id,t1.robot_scene_node_id,t2.scene_name,t3.process_name,t3.derail,t1.hours
+    </select>
+
+    <select id="getProcessQuantityTableResps" parameterType="java.util.Map"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityTableResp">
+        SELECT t1.robot_scene_node_id as robotSceneNodeId, t2.scene_name AS sceneName,t1.robot_process_setting_node_id as robotProcessSettingNodeId,t3.process_name AS processName,t3.derail AS derail,SUM(t1.process_triggers_num) AS processTriggersSumNum,SUM(t1.process_completed_num) AS processCompletedSumNum,SUM(t1.bottom_return_num) AS bottomReturnSumNum,t1.hours FROM process_quantity_yesterday t1
+        LEFT JOIN robot_scene_node t2 ON t1.robot_scene_node_id=t2.id LEFT JOIN robot_process_setting_node t3 ON t3.`id`=t1.robot_process_setting_node_id
+        WHERE t1.creator =#{creator} and t1.hours &gt;=#{btime} and t1.hours &lt;=#{etime}
+        <if test="robotSceneNodeId != null and robotSceneNodeId!= ''">
+            and t1.robot_scene_node_id =#{robotSceneNodeId}
+        </if>
+        <if test="robotProcessSettingNodeId != null and robotProcessSettingNodeId!= ''">
+            and t1.robot_process_setting_node_id =#{robotProcessSettingNodeId}
+        </if>
+        GROUP BY  t1.robot_process_setting_node_id,t1.robot_scene_node_id,t2.scene_name,t3.process_name,t3.derail,t1.hours ORDER BY t1.hours desc
+    </select>
+
+
+
+    <select id="getProcessQuantityScenceAsc" parameterType="java.util.Map"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityScenceTopResp">
+          SELECT t1.robot_scene_node_id AS robotSceneNodeId, t2.scene_name AS sceneName,SUM(t1.process_triggers_num) AS processTriggersSumNum FROM process_quantity_yesterday t1
+        LEFT JOIN robot_scene_node t2 ON t1.robot_scene_node_id=t2.id
+        WHERE t1.creator =#{creator} and t1.hours &gt;=#{btime} and t1.hours &lt;=#{etime}
+        <if test="chatBotId != null and chatBotId!= ''">
+            and t2.accounts  like concat('%',#{chatBotId},'%')
+        </if>
+        GROUP BY t1.robot_scene_node_id,t2.scene_name ORDER BY processTriggersSumNum DESC LIMIT 5
+    </select>
+
+    <select id="getProcessQuantityScenceDesc" parameterType="java.util.Map"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityScenceTopResp">
+        SELECT t1.robot_scene_node_id AS robotSceneNodeId, t2.scene_name AS sceneName,SUM(t1.process_triggers_num) AS processTriggersSumNum FROM process_quantity_yesterday t1
+        LEFT JOIN robot_scene_node t2 ON t1.robot_scene_node_id=t2.id
+        WHERE t1.creator =#{creator} and t1.hours &gt;=#{btime} and t1.hours &lt;=#{etime}
+        <if test="chatBotId != null and chatBotId!= ''">
+            and t2.accounts  like concat('%',#{chatBotId},'%')
+        </if>
+        GROUP BY t1.robot_scene_node_id,t2.scene_name ORDER BY processTriggersSumNum ASC LIMIT 5
+    </select>
+
+    <select id="getProcessQuantityProcessAsc" parameterType="java.util.Map"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityProcessTopResp">
+         SELECT t1.robot_scene_node_id AS robotSceneNodeId, t2.scene_name AS sceneName,t1.robot_process_setting_node_id AS robotProcessSettingNodeId,t3.process_name AS processName,SUM(t1.process_triggers_num) AS processTriggersSumNum FROM process_quantity_yesterday t1
+        LEFT JOIN robot_scene_node t2 ON t1.robot_scene_node_id=t2.id LEFT JOIN robot_process_setting_node t3 ON t3.`id`=t1.robot_process_setting_node_id
+        WHERE t1.creator =#{creator} and t1.hours &gt;=#{btime} and t1.hours &lt;=#{etime}
+        <if test="chatBotId != null and chatBotId!= ''">
+            and t2.accounts  like concat('%',#{chatBotId},'%')
+        </if>
+        GROUP BY  t1.robot_process_setting_node_id,t1.robot_scene_node_id,t2.scene_name,t3.process_name ORDER BY processTriggersSumNum ASC LIMIT 5
+    </select>
+
+    <select id="getProcessQuantityProcessDesc" parameterType="java.util.Map"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityProcessTopResp">
+        SELECT t1.robot_scene_node_id AS robotSceneNodeId, t2.scene_name AS sceneName,t1.robot_process_setting_node_id AS robotProcessSettingNodeId,t3.process_name AS processName,SUM(t1.process_triggers_num) AS processTriggersSumNum FROM process_quantity_yesterday t1
+        LEFT JOIN robot_scene_node t2 ON t1.robot_scene_node_id=t2.id LEFT JOIN robot_process_setting_node t3 ON t3.`id`=t1.robot_process_setting_node_id
+        WHERE t1.creator =#{creator} and t1.hours &gt;=#{btime} and t1.hours &lt;=#{etime}
+        <if test="chatBotId != null and chatBotId!= ''">
+            and t2.accounts  like concat('%',#{chatBotId},'%')
+        </if>
+        GROUP BY  t1.robot_process_setting_node_id,t1.robot_scene_node_id,t2.scene_name,t3.process_name ORDER BY processTriggersSumNum desc LIMIT 5
+    </select>
+
+    <select id="getscenceNum" parameterType="java.util.Map"
+            resultType="java.lang.Long">
+        SELECT count(*) FROM robot_scene_node t2 WHERE t2.creator =#{creator} AND t2.deleted=0
+        <if test="chatBotId != null and chatBotId!= ''">
+            and t2.accounts  like concat('%',#{chatBotId},'%')
+        </if>
+        and t2.accounts is not null
+    </select>
+
+    <select id="getprocessNum" parameterType="java.util.Map"
+            resultType="java.lang.Long">
+        SELECT count(*) FROM robot_process_setting_node t2 LEFT JOIN robot_scene_node t3 ON t3.`id`=t2.scene_id AND t2.deleted=t3.deleted
+        WHERE t2.creator =#{creator} and t2.deleted=0
+        <if test="chatBotId != null and chatBotId!= ''">
+            and t3.accounts  like concat('%',#{chatBotId},'%')
+        </if>
+    </select>
+
+    <select id="selectScenceProcessCount"
+            resultType="com.citc.nce.dataStatistics.entity.ProcessQuantityYesterdayDo">
+        SELECT
+            chatbot_id,
+            operator_type,
+            creator,
+            robot_process_setting_node_id,
+            robot_scene_node_id,
+            SUM(process_triggers_num) AS process_triggers_num,
+            SUM(process_completed_num) AS process_completed_num,
+            SUM(bottom_return_num) AS bottom_return_num
+        FROM
+            process_quantity_yesterday
+        WHERE
+            hours >= #{startTime} and hours <![CDATA[<]]> #{endTime}
+        GROUP BY
+            chatbot_id,
+            operator_type,
+            creator,
+            robot_process_setting_node_id,
+            robot_scene_node_id
+    </select>
+</mapper>

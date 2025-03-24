@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.aim.dao.AimProjectDao">
+
+    <select id="getMaxId" resultType="java.lang.Long">
+        select max(id) from aim_project
+    </select>
+    <select id="queryProjectListCount" resultType="java.lang.Integer">
+        select count(*)
+        from
+        <include refid="mainSql"/>
+    </select>
+
+    <select id="queryProjectList" resultType="com.citc.nce.aim.dto.AimProjectOrderInfoDto">
+        select
+        ap.id,
+        ap.project_name,
+        ap.project_id,
+        ap.calling,
+        ap.sms_template,
+        ap.path_key,
+        ap.secret,
+        ap.project_status,
+        ap.create_time,
+        ap.update_time,
+        ap.creator,
+        ap.updater,
+        ap.deleted,
+        ao.order_status
+        from
+        <include refid="mainSql"/>
+        ORDER BY
+        ap.create_time DESC
+        <if test="pageSize != null">
+            LIMIT
+            #{currentPage}, #{pageSize}
+        </if>
+    </select>
+    <select id="queryProjectEnabledOrderInfo" resultType="com.citc.nce.aim.dto.AimProjectOrderInfoDto">
+        SELECT
+        ap.id,
+        ap.project_name,
+        ap.project_id,
+        ap.calling,
+        ap.sms_template,
+        ap.path_key,
+        ap.secret,
+        ap.project_status,
+        ao.id as orderId,
+        ao.order_name,
+        ao.order_amount,
+        ao.order_consumption,
+        ao.order_status
+        FROM
+        aim_project ap INNER JOIN aim_order ao ON ap.project_id = ao.project_id and ao.order_status = 1 and ao.deleted = 0
+        WHERE
+        ap.deleted = 0
+    </select>
+
+    <sql id="mainSql">
+        aim_project ap
+        LEFT JOIN (select order_status, project_id from aim_order where deleted = 0 and order_status = 1) ao ON ap.project_id = ao.project_id
+        where
+        ap.deleted = 0
+        <if test='projectStatus != null and projectStatus >= 0'>
+            and ap.project_status = #{projectStatus}
+        </if>
+        <if test='queryString != null and queryString != ""'>
+            and (ap.project_name like CONCAT('%',#{queryString},'%') or ap.calling like CONCAT('%',#{queryString},'%'))
+        </if>
+    </sql>
+
+</mapper>

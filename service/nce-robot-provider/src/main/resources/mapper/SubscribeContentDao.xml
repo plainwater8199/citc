@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.module.dao.SubscribeContentDao">
+
+
+    <select id="querySubScribeContent" resultType="com.citc.nce.module.entity.SubscribeContentDo">
+        select id ,subscribe_id ,sub_content_id ,title,msg_5g_id,content,creator,create_time,updater,update_time,subscribe_content_order,subscribe_content_status,is_the_last,deleted_time,deleted
+        from subscribe_content
+        where sub_content_id = #{subscribeContentId};
+    </select>
+    <select id="findListById" resultType="com.citc.nce.module.entity.SubscribeContentDo">
+        select id ,subscribe_id ,sub_content_id ,title,msg_5g_id,content,creator,create_time,updater,update_time,subscribe_content_order,subscribe_content_status,is_the_last,deleted_time,deleted
+        from subscribe_content
+        where subscribe_id = #{subscribeId}
+        order by create_time asc;
+    </select>
+</mapper>
+

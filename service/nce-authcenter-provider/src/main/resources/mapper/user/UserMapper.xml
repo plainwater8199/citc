@@ -1,0 +1,686 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.authcenter.user.dao.UserMapper">
+
+    <update id="changeTempStorePermission"
+            parameterType="com.citc.nce.authcenter.tempStorePerm.bean.ChangePrem">
+        update user
+        set temp_store_perm = #{permission}
+        where user_id = #{userId}
+    </update>
+
+    <update id="changeCspMealStatusByUserId">
+        update user
+        set csp_meal_status = #{status}
+        where user_id = #{userId}
+    </update>
+
+    <update id="changeCspMealStatusByCspId">
+        update user
+        set csp_meal_status = #{status}
+        where user_id in (select user_id from csp where csp_id = #{cspId})
+    </update>
+
+    <select id="getEnergyMallUserList" resultType="com.citc.nce.authcenter.auth.vo.UserPageInfo"
+            parameterType="com.citc.nce.authcenter.auth.vo.UserPageDBInfo">
+        SELECT * FROM
+        (
+        SELECT
+        d.userId,
+        d.certificateId,
+        d.userCertificate,
+        e.name AS account,
+        e.unrule_num AS unruleNum,
+        e.phone,
+        e.mail,
+        f.user_status AS userStatus,
+        e.create_time AS registerTime,
+        e.auth_status AS userCertificateApplyStatus
+        <include refid="sql1"/>
+        ) j
+        <choose>
+            <when test="(sortFile!=null and sortFile!='') and (sortType=='desc' or sortType=='asc') ">
+                ORDER BY ${sortFile} ${sortType},
+                (CASE WHEN j.userCertificateApplyStatus = 1 THEN 3
+                WHEN j.userCertificateApplyStatus = 2 THEN 2
+                WHEN j.userCertificateApplyStatus = 3 THEN 1
+                WHEN j.userCertificateApplyStatus = 0 THEN 0
+                END
+                ) DESC, j.registerTime DESC
+            </when>
+            <otherwise>
+                ORDER BY (CASE WHEN j.userCertificateApplyStatus = 1 THEN 3
+                WHEN j.userCertificateApplyStatus = 2 THEN 2
+                WHEN j.userCertificateApplyStatus = 3 THEN 1
+                WHEN j.userCertificateApplyStatus = 0 THEN 0
+                END
+                ) DESC, j.registerTime DESC
+            </otherwise>
+        </choose>
+        <if test="isNotExport == true ">
+            limit #{pageNo} , #{pageSize}
+        </if>
+    </select>
+
+    <select id="getEnergyMallUserCount" resultType="java.lang.Long"
+            parameterType="com.citc.nce.authcenter.auth.vo.UserPageDBInfo">
+        SELECT COUNT(1)
+        <include refid="sql1"/>
+    </select>
+
+    <select id="getChatBotAndHardWalnutsUserList" resultType="com.citc.nce.authcenter.auth.vo.UserInfo"
+            parameterType="com.citc.nce.authcenter.auth.vo.ManageUserInfo">
+        SELECT
+        a.id,
+        a.user_id,
+        a.`name`,
+        a.user_img_uuid,
+        a.phone,
+        a.mail,
+        a.email_activated,
+        a.user_type,
+        a.person_auth_status,
+        a.enterprise_auth_status,
+        a.auth_status,
+        a.unrule_num,
+        a.creator,
+        a.create_time,
+        a.updater,
+        a.update_time,
+        a.deleted,
+        a.deleted_time,
+        b.user_status,
+        b.apply_time,
+        b.approval_status,
+        b.protal,
+        b.approval_log_id
+        <include refid="sql2"/>
+        limit #{pageNo} , #{pageSize}
+    </select>
+
+    <select id="getChatBotAndHardWalnutsUserCount" resultType="java.lang.Long"
+            parameterType="com.citc.nce.authcenter.auth.vo.ManageUserInfo">
+        SELECT COUNT(1)
+        <include refid="sql2"/>
+    </select>
+
+    <select id="getgetPlatformApplicationReviewList" resultType="com.citc.nce.authcenter.auth.vo.UserInfo"
+            parameterType="com.citc.nce.authcenter.auth.vo.PlatformApplicationReviewInfo">
+        SELECT
+        a.id,
+        a.user_id,
+        a.`name`,
+        a.user_img_uuid,
+        a.phone,
+        a.mail,
+        a.email_activated,
+        a.user_type,
+        a.person_auth_status,
+        a.enterprise_auth_status,
+        a.auth_status,
+        a.unrule_num,
+        a.creator,
+        a.create_time,
+        a.updater,
+        a.update_time,
+        a.deleted,
+        a.deleted_time,
+        b.user_status,
+        b.apply_time,
+        b.approval_status,
+        b.protal,
+        b.approval_log_id,
+        c.enterprise_name,
+        uco.certificate_id
+        <include refid="sql3"/>
+        limit #{pageNo} , #{pageSize}
+    </select>
+
+    <select id="getPlatformApplicationReviewCount" resultType="java.lang.Long"
+            parameterType="com.citc.nce.authcenter.auth.vo.PlatformApplicationReviewInfo">
+        SELECT COUNT(1)
+        <include refid="sql3"/>
+    </select>
+    <select id="selectUserInfoByUserId" resultType="com.citc.nce.authcenter.auth.vo.UserIdAndNameInfo"
+            parameterType="com.citc.nce.authcenter.auth.vo.UserIdInfo">
+        SELECT a.user_id, a.`name`, a.person_auth_status, b.user_status
+        FROM user a
+        JOIN user_platform_permissions b
+        ON a.user_id = b.user_id
+        AND a.deleted = 0
+        AND b.deleted = 0
+        AND b.protal = 1
+        <if test="userId != null and userId != ''">
+            AND a.user_id like concat('%',#{userId},'%')
+        </if>
+        ORDER BY a.create_time
+    </select>
+
+    <sql id="sql1">
+        FROM (
+        SELECT a.user_id AS userId, GROUP_CONCAT(b.certificate_id SEPARATOR ',') AS certificateId,
+        GROUP_CONCAT(c.certificate_name SEPARATOR ',') AS userCertificate
+        FROM user a
+        LEFT JOIN user_certificate_options b ON a.user_id = b.user_id AND b.deleted = 0
+        AND b.certificate_apply_status = 3
+        LEFT JOIN user_certificate c ON c.id=b.certificate_id
+        WHERE 1 = 1
+        <if test="userCertificate != null and userCertificate.size > 0 ">
+            AND b.certificate_id IN
+            <foreach collection="userCertificate" item="num" open="(" separator="," close=")">
+                #{num}
+            </foreach>
+        </if>
+        GROUP BY a.user_id)d
+        INNER JOIN user e ON d.userId = e.user_id
+        INNER JOIN user_platform_permissions f ON d.userId = f.user_id AND f.protal = 1
+        WHERE e.deleted=0
+        and f.user_status != 0
+        <if test="userStatus != null ">
+            and f.user_status = #{userStatus}
+        </if>
+        <if test="keyWord != null and keyWord != ''">
+            and (e.user_id like concat('%',#{keyWord},'%') or e.name like concat('%',#{keyWord},'%'))
+        </if>
+
+        <if test="authStatus != null ">
+            and e.auth_status = #{authStatus}
+        </if>
+
+        <if test="unruleNums != null and unruleNums.size > 0">
+            AND e.unrule_num in
+            <foreach collection="unruleNums" item="num" open="(" separator="," close=")">
+                #{num}
+            </foreach>
+            <if test="tenFlag ==1 ">
+                OR e.unrule_num &gt; 10
+            </if>
+        </if>
+        <if test="unruleNums == null and tenFlag ==1 ">
+            AND e.unrule_num &gt; 10
+        </if>
+    </sql>
+
+    <sql id="sql2">
+        FROM user a INNER JOIN user_platform_permissions b
+        ON a.user_id = b.user_id
+        AND b.protal = #{protal}
+        AND a.deleted = 0
+        AND b.deleted = 0
+        <if test="name != null and name !=''">
+            AND a.`name` LIKE concat('%',#{name},'%')
+        </if>
+        <if test="phone != null and phone !=''">
+            AND a.phone LIKE concat('%',#{phone},'%')
+        </if>
+        <if test="enterpriseAuthStatus != null ">
+            AND a.enterprise_auth_status = #{enterpriseAuthStatus}
+        </if>
+        <if test="personAuthStatus != null ">
+            AND a.person_auth_status = #{personAuthStatus}
+        </if>
+        <if test="userStatus != null ">
+            AND b.user_status = #{userStatus}
+        </if>
+        <if test="protal == 3">
+            AND b.approval_status = 3
+        </if>
+        ORDER BY a.enterprise_auth_status &lt;&gt; 1, a.person_auth_status &lt;&gt; 1, a.create_time DESC
+    </sql>
+
+    <sql id="sql3">
+        FROM user a INNER JOIN user_platform_permissions b
+        ON a.user_id = b.user_id
+        AND a.deleted = 0
+        AND b.deleted = 0
+        AND b.approval_status != 0
+        AND b.protal = 3
+        <if test="name != null and name !=''">
+            AND a.`name` LIKE concat('%',#{name},'%')
+        </if>
+        <if test="approvalStatus != null ">
+            AND b.approval_status = #{approvalStatus}
+        </if>
+        LEFT JOIN user_enterprise_identification c
+        ON a.user_id = c.user_id
+        AND c.deleted = 0
+        LEFT JOIN user_certificate_options uco
+        ON a.user_id = uco.user_id and uco.certificate_id = 10006
+        WHERE 1 = 1
+        <if test="enterpriseName != null and enterpriseName !='' ">
+            AND c.enterprise_name LIKE concat('%',#{enterpriseName},'%')
+        </if>
+        <if test="keyWord != null and keyWord !='' ">
+            AND (a.user_id LIKE concat('%',#{keyWord},'%') or a.phone LIKE concat('%',#{keyWord},'%') or a.mail LIKE
+            concat('%',#{keyWord},'%'))
+        </if>
+        ORDER BY b.approval_status &lt;&gt; 1, b.apply_time DESC
+    </sql>
+
+    <select id="getCommunityUserList" resultType="com.citc.nce.authcenter.auth.vo.UserInfo"
+            parameterType="com.citc.nce.authcenter.auth.vo.ManageUserInfo">
+        SELECT
+        d.id,
+        d.user_id,
+        d.name,
+        d.user_img_uuid,
+        d.phone,
+        d.mail,
+        d.email_activated,
+        d.user_type,
+        d.person_auth_status,
+        d.enterprise_auth_status,
+        d.auth_status,
+        d.unrule_num,
+        d.creator,
+        d.create_time,
+        d.updater,
+        d.update_time,
+        d.deleted,
+        d.deleted_time,
+        p.user_status,
+        p.apply_time,
+        d.certificateIds,
+        d.userCertificate,
+        p.approval_status,
+        p.approval_log_id
+        <include refid="communitySQL"/>
+        limit #{pageNo} , #{pageSize}
+    </select>
+
+    <select id="getCommunityUserListCount" resultType="java.lang.Long"
+            parameterType="com.citc.nce.authcenter.auth.vo.ManageUserInfo">
+        SELECT COUNT(1)
+        <include refid="communitySQL"/>
+    </select>
+
+
+    <sql id="communitySQL">
+        FROM
+        (
+        SELECT
+        a.id,
+        a.`name`,
+        a.user_img_uuid,
+        a.phone,
+        a.mail,
+        a.email_activated,
+        a.user_type,
+        a.person_auth_status,
+        a.enterprise_auth_status,
+        a.auth_status,
+        a.creator,
+        a.create_time,
+        a.updater,
+        a.update_time,
+        a.deleted,
+        a.deleted_time,
+        a.user_id,
+        GROUP_CONCAT(b.certificate_id SEPARATOR ',') AS certificateIds,
+        GROUP_CONCAT(c.certificate_name SEPARATOR ',') AS userCertificate,
+        IFNULL(SUM(v.violation_num),0) AS unrule_num
+        FROM user a
+        <choose>
+            <when test="userCertificate != null and userCertificate.size > 0 ">
+                INNER JOIN user_certificate_options b ON a.user_id = b.user_id AND b.deleted = 0 AND
+                b.certificate_apply_status = 3 and b.certificate_status = 0
+                and b.certificate_id IN
+                <foreach collection="userCertificate" item="num" open="(" separator="," close=")">
+                    #{num}
+                </foreach>
+            </when>
+            <otherwise>
+                LEFT JOIN user_certificate_options b ON a.user_id = b.user_id AND b.deleted = 0 AND
+                b.certificate_apply_status = 3 and b.certificate_status = 0
+            </otherwise>
+        </choose>
+        LEFT JOIN user_certificate c ON c.id=b.certificate_id AND a.deleted = 0
+        LEFT JOIN user_violation v ON v.user_id = a.user_id AND v.plate = 2 AND v.deleted = 0
+        WHERE 1=1
+        <if test="keyWord != null and keyWord !='' ">
+            AND (a.user_id LIKE concat('%',#{keyWord},'%') or a.phone LIKE concat('%',#{keyWord},'%') or a.`name` LIKE
+            concat('%',#{keyWord},'%'))
+        </if>
+        <if test="userIds != null and userIds.size > 0 ">
+            AND a.user_id IN
+            <foreach collection="userIds" item="num" open="(" separator="," close=")">
+                #{num}
+            </foreach>
+        </if>
+        <if test="enterpriseAuthStatus != null ">
+            AND a.enterprise_auth_status = #{enterpriseAuthStatus}
+        </if>
+        <if test="personAuthStatus != null ">
+            AND a.person_auth_status = #{personAuthStatus}
+        </if>
+        GROUP BY a.user_id,
+        a.id,
+        a.`name`,
+        a.user_img_uuid,
+        a.phone,
+        a.mail,
+        a.email_activated,
+        a.user_type,
+        a.person_auth_status,
+        a.enterprise_auth_status,
+        a.auth_status,
+        a.creator,
+        a.create_time,
+        a.updater,
+        a.update_time,
+        a.deleted,
+        a.deleted_time
+        ) d
+        INNER JOIN user_platform_permissions p ON p.user_id = d.user_id AND p.protal = 2 AND p.deleted = 0
+        <if test="userStatus != null ">
+            AND p.user_status = #{userStatus}
+        </if>
+        <if test="unruleNums != null and unruleNums.size > 0 ">
+            AND (
+            <foreach collection="unruleNums" item="num" index="index">
+                <choose>
+                    <when test="num==0">
+                        <choose>
+                            <when test="index == 0">
+                                d.unrule_num =0
+                            </when>
+                            <otherwise>
+                                or d.unrule_num =0
+                            </otherwise>
+                        </choose>
+                    </when>
+                    <when test="num==1">
+                        <choose>
+                            <when test="index == 0">
+                                d.unrule_num &gt; 0 and d.unrule_num &lt; 4
+                            </when>
+                            <otherwise>
+                                or d.unrule_num &gt; 0 and d.unrule_num &lt; 4
+                            </otherwise>
+                        </choose>
+                    </when>
+                    <when test="num==2">
+                        <choose>
+                            <when test="index == 0">
+                                d.unrule_num &gt; 3 and d.unrule_num &lt; 11
+                            </when>
+                            <otherwise>
+                                or d.unrule_num &gt; 3 and d.unrule_num &lt; 11
+                            </otherwise>
+                        </choose>
+                    </when>
+                    <otherwise>
+                        <choose>
+                            <when test="index == 0">
+                                d.unrule_num &gt; 10
+                            </when>
+                            <otherwise>
+                                or d.unrule_num &gt; 10
+                            </otherwise>
+                        </choose>
+                    </otherwise>
+                </choose>
+            </foreach>
+            )
+        </if>
+        ORDER BY
+        <choose>
+            <when test="sortFile != null and sortFile == 'UNRULE'.toString()">
+                <choose>
+                    <when test="sortType != null and sortType!='' and sortType == 'ASC'.toString()">
+                        d.unrule_num ASC
+                    </when>
+                    <otherwise>
+                        d.unrule_num DESC
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="sortType != null and sortType!='' and sortType == 'ASC'.toString()">
+                        d.create_time ASC
+                    </when>
+                    <otherwise>
+                        d.create_time DESC
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+    </sql>
+
+
+    <select id="getCSPUserList" resultType="com.citc.nce.authcenter.auth.vo.UserInfo"
+            parameterType="com.citc.nce.authcenter.auth.vo.ManageUserInfo">
+        SELECT
+        a.id,
+        a.user_id,
+        a.`name`,
+        a.user_img_uuid,
+        a.phone,
+        a.mail,
+        a.email_activated,
+        a.user_type,
+        a.person_auth_status,
+        a.enterprise_auth_status,
+        a.auth_status,
+        a.unrule_num,
+        a.creator,
+        a.create_time,
+        a.updater,
+        a.update_time,
+        a.deleted,
+        a.deleted_time,
+        a.temp_store_perm,
+        a.csp_meal_status,
+        b.user_status,
+        b.apply_time,
+        b.approval_status,
+        b.protal,
+        b.approval_log_id,
+        csp.csp_id,
+        b.approval_log_id,
+        cc.telecom_channel,
+        cc.mobile_channel,
+        cc.unicom_channel
+        <include refid="queryCSPUser"/>
+        limit #{pageNo} , #{pageSize}
+    </select>
+
+    <select id="getCSPUserCount" resultType="java.lang.Long"
+            parameterType="com.citc.nce.authcenter.auth.vo.ManageUserInfo">
+        SELECT COUNT(1) from (
+        SELECT
+        a.id,
+        a.user_id,
+        a.`name`,
+        a.user_img_uuid
+        <include refid="queryCSPUser"/>
+        ) AF
+    </select>
+
+    <sql id="queryCSPUser">
+        FROM user a
+            INNER JOIN csp ON a.user_id = csp.user_id AND csp.deleted = 0
+            INNER JOIN user_platform_permissions b ON a.user_id = b.user_id AND b.protal = 3 AND b.deleted = 0
+            LEFT JOIN csp_channel cc ON a.user_id = cc.user_id
+        where
+        a.deleted = 0
+        <if test="name != null and name !=''">
+            AND a.`name` LIKE concat('%',#{name},'%')
+        </if>
+        <if test="phone != null and phone !=''">
+            AND a.phone LIKE concat('%',#{phone},'%')
+        </if>
+        <if test="enterpriseAuthStatus != null ">
+            AND a.enterprise_auth_status = #{enterpriseAuthStatus}
+        </if>
+        <if test="personAuthStatus != null ">
+            AND a.person_auth_status = #{personAuthStatus}
+        </if>
+        <if test="userStatus != null ">
+            AND b.user_status = #{userStatus}
+        </if>
+        <if test="tempStorePerm != null ">
+            AND a.temp_store_perm = #{tempStorePerm}
+        </if>
+        <if test="cspMealStatus != null ">
+            AND a.csp_meal_status = #{cspMealStatus}
+        </if>
+        AND b.approval_status = 3
+        ORDER BY a.enterprise_auth_status &lt;&gt; 1, a.person_auth_status &lt;&gt; 1, a.create_time DESC
+    </sql>
+
+
+    <select id="getMallUserList" resultType="com.citc.nce.authcenter.auth.vo.UserPageInfo"
+            parameterType="com.citc.nce.authcenter.auth.vo.UserPageDBInfo">
+        SELECT
+        d.userId,
+        d.certificateId,
+        d.userCertificate,
+        e.name AS account,
+        e.unrule_num AS unruleNum,
+        e.phone,
+        e.mail,
+        f.user_status AS userStatus,
+        e.create_time AS registerTime,
+        e.auth_status AS userCertificateApplyStatus
+        <include refid="MallUserSQL"/>
+        <if test="isNotExport == true ">
+            limit #{pageNo} , #{pageSize}
+        </if>
+    </select>
+
+    <select id="getMallUserListCount" resultType="java.lang.Long"
+            parameterType="com.citc.nce.authcenter.auth.vo.UserPageDBInfo">
+        SELECT COUNT(1)
+        <include refid="MallUserSQL"/>
+    </select>
+    <select id="getTempStorePerm" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select temp_store_perm
+        from user
+        where user_id = #{userId}
+    </select>
+
+    <sql id="MallUserSQL">
+        FROM (
+        SELECT a.user_id AS userId, GROUP_CONCAT(b.certificate_id SEPARATOR ',') AS certificateId,
+        GROUP_CONCAT(c.certificate_name SEPARATOR ',') AS userCertificate
+        FROM user a
+        LEFT JOIN user_certificate_options b ON a.user_id = b.user_id AND b.deleted = 0
+        AND b.certificate_apply_status = 3
+        LEFT JOIN user_certificate c ON c.id=b.certificate_id
+        WHERE 1 = 1
+        <if test="userCertificate != null and userCertificate.size > 0 ">
+            AND b.certificate_id IN
+            <foreach collection="userCertificate" item="num" open="(" separator="," close=")">
+                #{num}
+            </foreach>
+        </if>
+        GROUP BY a.user_id)d
+        INNER JOIN user e ON d.userId = e.user_id
+        INNER JOIN user_platform_permissions f ON d.userId = f.user_id AND f.protal = 1
+        WHERE e.deleted=0
+        and f.user_status != 0
+        <if test="userStatus != null ">
+            and f.user_status = #{userStatus}
+        </if>
+        <if test="keyWord != null and keyWord != ''">
+            and (e.user_id like concat('%',#{keyWord},'%') or e.name like concat('%',#{keyWord},'%'))
+        </if>
+
+        <if test="authStatus != null ">
+            and e.auth_status = #{authStatus}
+        </if>
+
+        <if test="unruleNums != null and unruleNums.size > 0">
+            AND e.unrule_num in
+            <foreach collection="unruleNums" item="num" open="(" separator="," close=")">
+                #{num}
+            </foreach>
+            <if test="tenFlag ==1 ">
+                OR e.unrule_num &gt; 10
+            </if>
+        </if>
+        <if test="unruleNums == null and tenFlag ==1 ">
+            AND e.unrule_num &gt; 10
+        </if>
+        ORDER BY e.create_time DESC
+    </sql>
+
+    <select id="existsByCspPhone" resultType="java.lang.Boolean" parameterType="java.lang.String">
+        select count(*)
+        from user
+                 left join chatbot_csp_account_relationship ccar
+                           on ccar.csp_user_id = user.user_id
+                               and ccar.deleted = 0
+        where ccar.id is null
+          and user.phone = #{phone}
+          and user.deleted = 0
+    </select>
+    <select id="listMealStatus" resultType="com.citc.nce.authcenter.auth.vo.UserInfo">
+        SELECT
+        user.*,
+        csp.csp_id
+        FROM csp LEFT JOIN user ON csp.user_id=user.user_id
+        <where>
+            <if test="cspId != null and cspId != ''">
+                and csp.csp_id = #{cspId}
+            </if>
+            <if test="mealStatus != null and mealStatus != ''">
+                and user.csp_meal_status = #{mealStatus}
+            </if>
+            <if test="true">
+                and user.deleted = 0
+            </if>
+        </where>
+    </select>
+    <select id="queryUnifiedManageUser" resultType="com.citc.nce.authcenter.auth.vo.UserInfo">
+        SELECT u.id,
+               u.user_id,
+               u.`name`,
+               u.user_img_uuid,
+               u.phone,
+               u.mail,
+               u.email_activated,
+               u.user_type,
+               u.person_auth_status,
+               u.enterprise_auth_status,
+               u.auth_status,
+               u.unrule_num,
+               u.creator,
+               u.create_time,
+               u.updater,
+               u.update_time,
+               u.deleted,
+               u.deleted_time,
+               e.enterprise_auth_time,
+               p.person_auth_time,
+               GREATEST(COALESCE(e.enterprise_auth_time, '1970-01-01'),
+                        COALESCE(p.person_auth_time, '1970-01-01')) as latest_auth_time
+        FROM user u
+                 LEFT JOIN user_enterprise_identification e ON u.user_id = e.user_id AND e.deleted = 0
+                 LEFT JOIN user_person_identification p ON u.user_id = p.user_id AND p.deleted = 0
+        WHERE u.deleted = 0
+        <if test="name != null and name !=''">
+            AND u.`name` LIKE concat('%',#{name},'%')
+        </if>
+        <if test="phone != null and phone !=''">
+            AND u.phone LIKE concat('%',#{phone},'%')
+        </if>
+        <if test="enterpriseAuthStatus != null ">
+            AND u.enterprise_auth_status = #{enterpriseAuthStatus}
+        </if>
+        <if test="personAuthStatus != null ">
+            AND u.person_auth_status = #{personAuthStatus}
+        </if>
+        /* 先按照认证状态排序，已认证在前面，再按照认证时间逆序，再按照用户创建时间逆序*/
+        ORDER BY (u.enterprise_auth_status = 1 OR u.person_auth_status = 1) DESC,
+                 latest_auth_time DESC,
+                 u.create_time DESC
+    </select>
+
+</mapper>
+
+
+
+

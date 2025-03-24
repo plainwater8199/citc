@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.csp.readingLetter.dao.CspReadingLetterAccountDao">
+
+    <select id="selectAccount"
+            resultType="com.citc.nce.auth.csp.readingLetter.vo.CspReadingLetterAccountListResp">
+        select account.account_name,
+               account.account_id,
+               account.status,
+               account.operator,
+               account.custom_domains,
+               account.create_time,
+               account.customer_id,
+               uei.enterprise_name,
+               uei.enterprise_account_name,
+               tariff.tariff_content  as tariffContent
+        from csp_reading_letter_account account
+            left join user_enterprise_identification uei
+                on account.customer_id = uei.user_id
+            left join charge_tariff tariff on tariff.batch = account.tariff_batch
+        where account.deleted = 0
+          <if test="cspId != null and cspId != ''">
+              and account.csp_id = #{cspId}
+          </if>
+        <if test="customerId != null and customerId != ''">
+            and account.customer_id = #{customerId}
+        </if>
+        <if test='status != null and status > -1'>
+            and account.status = #{status}
+        </if>
+        <if test='accountName != null and accountName != ""'>
+            and account.account_name like concat('%',#{accountName},'%')
+        </if>
+        <if test='name != null and name != ""'>
+            and uei.enterprise_account_name like concat('%',#{name},'%')
+        </if>
+        ORDER BY account.create_time DESC
+    </select>
+
+
+</mapper>

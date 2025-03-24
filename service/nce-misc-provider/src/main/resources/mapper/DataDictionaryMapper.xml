@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.misc.dictionary.mapper.DataDictionaryMapper">
+    <update id="updateDeletedByDicTypeId" parameterType="java.lang.Integer">
+        UPDATE data_dictionary SET deleted = #{deleted} where dic_type_id = 10
+    </update>
+</mapper>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.readingLetter.shortUrl.dao.ReadingLetterShortUrlDao">
+
+    <update id="addResolvedNumber">
+        update reading_letter_short_url set resolved_number = resolved_number + 1 where id = #{shortUrlId}
+    </update>
+
+    <select id="selectShortUrl" resultType="com.citc.nce.auth.readingLetter.shortUrl.vo.ReadingLetterShortUrlVo">
+        select url.*,account.account_name
+        from reading_letter_short_url url
+        join reading_letter_template template on url.template_id = template.id
+        join csp_reading_letter_account account on url.account_id = account.account_id
+        where url.deleted=0 and template.deleted=0
+        and url.customer_id = #{customerId}
+        <if test="auditStatus != null">
+            and url.audit_status = #{auditStatus}
+        </if>
+        <if test="operatorCode != null">
+            and url.operator_code = #{operatorCode}
+        </if>
+        <if test="taskStatus == 1">
+            and url.request_parse_number <![CDATA[>]]> url.resolved_number
+            and url.validity_date <![CDATA[>]]> now()
+            and url.audit_status = 1
+        </if>
+        <if test="taskStatus == 2">
+            and url.request_parse_number > url.resolved_number
+            and url.validity_date <![CDATA[<]]> now()
+            and url.audit_status = 1
+        </if>
+        <if test="taskStatus == 3">
+            and url.request_parse_number <![CDATA[=]]> url.resolved_number
+            and url.audit_status = 1
+        </if>
+        and url.template_id in
+        <foreach collection="templateIdList" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectShortUrlWithoutTemplateId"
+            resultType="com.citc.nce.auth.readingLetter.shortUrl.vo.ReadingLetterShortUrlVo">
+        select url.*,account.account_name
+        from reading_letter_short_url url
+        join reading_letter_template template on url.template_id = template.id
+        join csp_reading_letter_account account on url.account_id = account.account_id
+        where url.deleted=0 and template.deleted=0
+        and url.customer_id = #{customerId}
+        <if test="auditStatus != null">
+            and url.audit_status = #{auditStatus}
+        </if>
+        <if test="operatorCode != null">
+            and url.operator_code = #{operatorCode}
+        </if>
+        <if test="taskStatus == 1">
+            and url.request_parse_number <![CDATA[>]]> url.resolved_number
+            and url.validity_date <![CDATA[>]]> now()
+            and url.audit_status = 1
+        </if>
+        <if test="taskStatus == 2">
+            and url.request_parse_number > url.resolved_number
+            and url.validity_date <![CDATA[<]]> now()
+            and url.audit_status = 1
+        </if>
+        <if test="taskStatus == 3">
+            and url.request_parse_number <![CDATA[=]]> url.resolved_number
+            and url.audit_status = 1
+        </if>
+    </select>
+
+    <select id="selectListByIds"
+            resultType="com.citc.nce.auth.readingLetter.shortUrl.vo.ReadingLetterShortUrlVo">
+
+        select url.id,url.short_url ,template.template_name,account.account_name,url.operator_code, url.customer_id
+        from reading_letter_short_url url
+        join reading_letter_template template on url.template_id = template.id
+        join csp_reading_letter_account account on url.account_id = account.account_id
+        where url.deleted=0
+        and url.id in
+        <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+
+    </select>
+    <select id="getDetailInfo" resultType="com.citc.nce.auth.readingLetter.dataStatistics.vo.DetailInfoVo">
+
+        select url.id,url.short_url ,url.template_name,account.account_name,url.operator_code
+        from reading_letter_short_url url
+        join csp_reading_letter_account account on url.account_id = account.account_id
+        where url.id=#{shortUrlId}
+    </select>
+    <select id="getShortUrlIds" resultType="java.lang.Long">
+
+        select id from reading_letter_short_url
+        <where>
+
+            <if test="accountIdList!= null and accountIdList.size() >0">
+                account_id IN
+                <foreach collection="accountIdList" item="value" separator="," open="(" close=")">
+                    #{value}
+                </foreach>
+            </if>
+
+            <if test="shortUrl != null and shortUrl != ''">
+                and short_url like concat('%',#{shortUrl},'%')
+            </if>
+        </where>
+    </select>
+
+
+    <select id="findAvailableShortUrls"
+            resultType="com.citc.nce.auth.readingLetter.shortUrl.entity.ReadingLetterShortUrlDo">
+        select * from reading_letter_short_url
+        where request_parse_number > resolved_number
+        and validity_date > now()
+        and customer_id = #{customerId}
+        <if test="nameOrUrl != null and nameOrUrl != ''">
+            and
+            (template_name like concat('%',#{nameOrUrl},'%')
+            or
+            short_url like concat('%',#{nameOrUrl},'%'))
+        </if>
+        and deleted = 0
+        and audit_status = 1
+        order by create_time desc
+    </select>
+    <select id="findExpiredUnprocessedShortUrl"
+            resultType="com.citc.nce.auth.readingLetter.shortUrl.vo.ReadingLetterShortUrlVo">
+        select url.*
+        from reading_letter_short_url url
+        where url.deleted=0
+        and url.validity_date <![CDATA[<]]> #{time}
+        and url.request_parse_number > url.resolved_number
+        and url.audit_status = 1
+        and url.processed = 0
+    </select>
+
+
+</mapper>

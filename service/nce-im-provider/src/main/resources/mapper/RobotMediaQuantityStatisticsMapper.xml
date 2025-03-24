@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.mapper.RobotMediaQuantityStatisticsMapper1">
+
+    <!-- 创建表SQL，参数为表名 -->
+    <update id="createTable" parameterType="string">
+        CREATE TABLE ${tableName} (
+                                      `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                      `unknow_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '未知数量',
+                                      `success_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '成功数量',
+                                      `failed_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '失败数量',
+                                      `send_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '群发总数',
+                                      `media_operator_code` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营商',
+                                      `plan_id` bigint(20) NOT NULL COMMENT '计划id',
+                                      `plan_detail_id` bigint(20) NOT NULL COMMENT '计划节点id',
+                                      `send_time_day` datetime NOT NULL COMMENT '发送时间(年月日)',
+                                      `send_time_hour` varchar(32) NOT NULL COMMENT '发送时间(小时)',
+                                      `creator` varchar(64) NOT NULL COMMENT '创建者',
+                                      `create_time` datetime NOT NULL COMMENT '创建时间',
+                                      `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+                                      `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否删除',
+                                      `delete_time` datetime DEFAULT NULL COMMENT '删除时间',
+                                      `updater` varchar(64) DEFAULT NULL COMMENT '更新者',
+                                      `media_account_id` varchar(50) NOT NULL DEFAULT '' COMMENT '富媒体账号id',
+                                      PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='视频短信数量统计表'
+
+    </update>
+
+    <sql id="conditionQuery">
+        <if test="sendPageReq.startTime != null and sendPageReq.startTime != ''">
+            DATE_FORMAT(send_time_day,'%Y-%m-%d') &lt;= #{sendPageReq.startTime}
+        </if>
+        <if test="sendPageReq.callerAccount != null and sendPageReq.callerAccount != ''">
+            and operator like #{sendPageReq.callerAccount}
+        </if>
+        <if test="sendPageReq.creator != null and sendPageReq.creator != ''">
+            and creator = #{sendPageReq.creator}
+        </if>
+    </sql>
+
+    <sql id="groupUserId">
+        <if test="userList != null and userList.size() > 0">
+            and creator in
+            <foreach item="item" index="index" collection="userList" open="("  close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="quantityRobotSend" resultType="long">
+        select sum(robot_send_num) from ${tableName}
+        where
+        <include refid="conditionQuery"></include>
+    </select>
+
+    <select id="queryHomeBrokenLineNumByDay" resultType="com.citc.nce.robot.vo.HomePageResp">
+        SELECT SUM(success_num) successNum,SUM(send_num) sendAmount,DATE_FORMAT(send_time_day ,'%Y-%m-%d') sendTimeDay
+        FROM ${tableName}
+        where send_time_day between #{sendPageReq.startTime} and #{sendPageReq.endTime}
+        <if test="sendPageReq.callerAccount != null and sendPageReq.callerAccount != ''">
+            and operator like #{sendPageReq.callerAccount}
+        </if>
+        <if test="sendPageReq.creator != null and sendPageReq.creator != ''">
+            and creator = #{sendPageReq.creator}
+        </if>
+        and deleted = '0'
+        and plan_id != 0
+        GROUP BY sendTimeDay
+    </select>
+
+    <select id="queryHomeBrokenLineNumByHour" resultType="com.citc.nce.robot.vo.HomePageResp">
+        SELECT SUM(success_num) successNum,SUM(send_num) sendAmount,send_time_hour
+        FROM ${tableName}
+        where send_time_day = #{sendPageReq.startTime}
+        <if test="sendPageReq.callerAccount != null and sendPageReq.callerAccount != ''">
+            and operator like #{sendPageReq.callerAccount}
+        </if>
+        <if test="sendPageReq.creator != null and sendPageReq.creator != ''">
+            and creator = #{sendPageReq.creator}
+        </if>
+        and deleted = '0'
+        and plan_id != 0
+        GROUP BY send_time_hour
+    </select>
+
+    <select id="queryAnalysisByPlanHour" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(success_num) successNum,SUM(send_num) sendAmount
+             ,sum(failed_num) failedNum,send_time_hour
+        FROM ${tableName}
+        where send_time_day = #{sendPageReq.specificTime}
+        <if test="sendPageReq.planId != null and sendPageReq.planId != 0">
+            and plan_id = #{sendPageReq.planId}
+        </if>
+        <if test="sendPageReq.planId == null ">
+            and plan_id != '0'
+        </if>
+        <if test="sendPageReq.planDetailId != null and sendPageReq.planDetailId != 0">
+            and plan_detail_id = #{sendPageReq.planDetailId}
+        </if>
+        <if test="sendPageReq.creator != null and sendPageReq.creator != ''">
+            and creator = #{sendPageReq.creator}
+        </if>
+        <if test="sendPageReq.callerAccount != null and sendPageReq.callerAccount != ''">
+            and operator = #{sendPageReq.callerAccount}
+        </if>
+        <if test="sendPageReq.accountId != null and sendPageReq.accountId != ''">
+            and media_account_id = #{sendPageReq.accountId}
+        </if>
+        and deleted = '0'
+        GROUP BY send_time_hour
+    </select>
+
+    <select id="queryAnalysisByPlanDay" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(success_num) successNum,SUM(send_num) sendAmount
+        ,sum(failed_num) failedNum,sum(unknow_num) unknowNum,DATE_FORMAT(send_time_day ,'%Y-%m-%d') sendTimeDay
+        FROM ${tableName}
+        where send_time_day between #{sendPageReq.startTime} and #{sendPageReq.endTime}
+        <if test="sendPageReq.planId != null and sendPageReq.planId != 0">
+            and plan_id = #{sendPageReq.planId}
+        </if>
+        <if test="sendPageReq.planDetailId != null and sendPageReq.planDetailId != 0">
+            and plan_detail_id = #{sendPageReq.planDetailId}
+        </if>
+        <if test="sendPageReq.creator != null and sendPageReq.creator != ''">
+            and creator = #{sendPageReq.creator}
+        </if>
+        <if test="sendPageReq.callerAccount != null and sendPageReq.callerAccount != ''">
+            and operator = #{sendPageReq.callerAccount}
+        </if>
+        <if test="sendPageReq.accountId != null and sendPageReq.accountId != ''">
+            and media_account_id = #{sendPageReq.accountId}
+        </if>
+        <if test="sendPageReq.planId == null ">
+            and plan_id != '0'
+        </if>
+        and deleted = '0'
+        GROUP BY sendTimeDay
+    </select>
+
+    <select id="queryManageGroupByOperatorHour" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(send_num) sendAmount,send_time_hour,media_operator_code as operator
+        FROM ${tableName}
+        <where>
+            send_time_day = #{sendPageReq.specificTime}
+            and deleted = '0'
+        </where>
+        GROUP BY send_time_hour,operator
+    </select>
+
+    <select id="queryManageGroupByOperatorDay" resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(send_num) sendAmount,DATE_FORMAT(send_time_day ,'%Y-%m-%d') sendTimeDay,media_operator_code as operator
+        FROM ${tableName}
+        <where>
+            send_time_day between #{sendPageReq.startTime} and #{sendPageReq.endTime}
+            and deleted = '0'
+        </where>
+        GROUP BY sendTimeDay,operator
+    </select>
+
+    <select id="queryCspSendAmount"  resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(send_num) sendAmount,operator
+        FROM ${tableName}
+        <where>
+            deleted = '0'
+            <include refid="groupUserId"></include>
+        </where>
+        GROUP BY operator
+    </select>
+
+    <select id="queryCspByDay"  resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT SUM(send_num) sendAmount,operator
+        FROM ${tableName}
+        <where>
+            send_time_day = #{sendPageReq.specificTime} and deleted = '0'
+            <include refid="groupUserId"></include>
+        </where>
+        GROUP BY operator
+    </select>
+
+    <select id="queryChatBotActive"  resultType="java.lang.String">
+        SELECT  distinct plan_account
+        FROM robot_group_plan_send
+        <where>
+            DATE_FORMAT(start_time ,'%Y-%m-%d') = #{sendPageReq.specificTime} and deleted = '0'
+            and is_start = 1 and creator = #{creator}
+        </where>
+    </select>
+
+    <select id="queryActiveChatBotByHour"  resultType="com.citc.nce.robot.vo.OperatorResp">
+        SELECT  GROUP_CONCAT(DISTINCT operator SEPARATOR ',') AS operators,send_time_hour as sendTimeHour
+        FROM ${tableName}
+        WHERE DATE_FORMAT(send_time_day ,'%Y-%m-%d') = #{sendPageReq.specificTime}
+        <include refid="groupUserId"></include>
+        GROUP BY sendTimeHour
+    </select>
+
+    <select id="queryActiveChatBotByDay"  resultType="com.citc.nce.robot.vo.OperatorResp">
+        SELECT  GROUP_CONCAT(DISTINCT operator SEPARATOR ',') AS operators,DATE_FORMAT(send_time_day ,'%Y-%m-%d') as sendTimeDay
+        FROM ${tableName}
+        WHERE send_time_day between #{sendPageReq.startTime} and #{sendPageReq.endTime}
+        <include refid="groupUserId"></include>
+        GROUP BY sendTimeDay
+    </select>
+
+
+    <select id="querySendAmountBeforeYesterday"  resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT  SUM(send_num) sendAmount,operator
+        FROM ${tableName}
+        WHERE DATE_FORMAT(send_time_day,'%Y-%m-%d') &lt;= #{yesterday}
+        <include refid="groupUserId"></include>
+        and deleted = '0'
+        GROUP BY operator
+    </select>
+
+    <select id="queryCspSendAmountByDay"  resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT  SUM(send_num) sendAmount,operator,DATE_FORMAT(send_time_day ,'%Y-%m-%d') as sendTimeDay
+        FROM ${tableName}
+        WHERE DATE_FORMAT(send_time_day ,'%Y-%m-%d') between #{sendPageReq.startTime} and #{sendPageReq.endTime}
+        <include refid="groupUserId"></include>
+        and deleted = '0'
+        GROUP BY operator,sendTimeDay
+    </select>
+
+    <select id="queryCspSendAmountByHour"  resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT  SUM(send_num) sendAmount,operator,send_time_hour as sendTimeHour
+        FROM ${tableName}
+        WHERE DATE_FORMAT(send_time_day ,'%Y-%m-%d') = #{sendPageReq.specificTime}
+        <include refid="groupUserId"></include>
+        and deleted = '0'
+        GROUP BY operator,sendTimeHour
+    </select>
+
+    <select id="querySendAmountByHour"  resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT  SUM(send_num) sendAmount,send_time_hour as sendTimeHour
+        FROM ${tableName}
+        WHERE DATE_FORMAT(send_time_day ,'%Y-%m-%d') = #{sendPageReq.specificTime}
+        and deleted = '0'
+        GROUP BY sendTimeHour
+    </select>
+
+    <select id="querySendAmountByDay"  resultType="com.citc.nce.robot.vo.AnalysisResp">
+        SELECT  SUM(send_num) sendAmount,DATE_FORMAT(send_time_day ,'%Y-%m-%d') as sendTimeDay
+        FROM ${tableName}
+        WHERE DATE_FORMAT(send_time_day ,'%Y-%m-%d') between #{sendPageReq.startTime} and #{sendPageReq.endTime}
+        and deleted = '0'
+        GROUP BY sendTimeDay
+    </select>
+
+</mapper>

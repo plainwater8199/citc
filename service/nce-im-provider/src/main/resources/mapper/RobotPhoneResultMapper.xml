@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.im.mapper.RobotPhoneResultMapper1">
+    <select id="planCount" parameterType="java.lang.String" resultType="com.citc.nce.robot.vo.MessageCount">
+        SELECT send_result,COUNT(id) num FROM robot_phone_result  WHERE message_id = #{messageId} in ('sent','failed') GROUP BY send_result
+    </select>
+
+    <select id="selectUnRead" parameterType="java.lang.String" resultType="string">
+        SELECT a.phone_num
+        FROM robot_phone_result a
+        WHERE a.phone_num NOT IN
+              (SELECT DISTINCT phone_num
+               FROM robot_phone_result
+               WHERE message_id = #{messageId} AND send_result = 6)
+          AND a.message_id = #{messageId}
+          AND a.send_result = 1 AND UNIX_TIMESTAMP(receipt_time) &lt;= UNIX_TIMESTAMP(#{nowStr});
+    </select>
+    
+    <select id="selectNotClick"  resultType="string">
+        SELECT phone_num FROM robot_phone_result WHERE message_id = #{messageId}
+        AND phone_num NOT IN (
+        SELECT DISTINCT phone_num FROM  robot_phone_uplink_result WHERE plan_detail_id = #{detailId}  AND btn_uuid IS NOT null
+        )
+        AND send_result IN (1,6) and UNIX_TIMESTAMP(receipt_time) &lt;= UNIX_TIMESTAMP(#{nowStr});
+    </select>
+
+    <select id="querySendDetailByPlanId" resultType="com.citc.nce.robot.vo.SendDetailResp">
+        SELECT
+            final_result,
+            COUNT(1) AS total,
+            date_format(send_time, '%Y-%m-%d') AS days
+        from
+            robot_phone_result
+            WHERE
+            date_format(send_time, '%Y-%m-%d') between #{startTime} and #{endTime}
+            <if test="planId != null and planId != 0">
+                and plan_id = #{planId}
+            </if>
+        group by
+            final_result,days
+        ORDER BY days
+    </select>
+
+    <select id="querySendDetailByHour" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.SendDetailResp">
+        select DATE_FORMAT(send_time,'%H') days,count(1)
+        total,final_result from robot_phone_result
+        WHERE
+        DATE_FORMAT(send_time,'%Y-%m-%d') = #{specificTime}
+        <if test="callerAccount != null and callerAccount != ''">
+            and caller_account = #{callerAccount}
+        </if>
+        group by days,final_result;
+    </select>
+
+    <select id="querySendDetailByDetailId" parameterType="com.citc.nce.robot.vo.IdReq" resultType="com.citc.nce.robot.vo.SendDetailResp">
+        SELECT
+            final_result,
+            COUNT(1) AS total,
+            date_format(send_time, '%Y-%m-%d') AS days
+        from
+            robot_phone_result
+        WHERE plan_detail_id = #{id} and date_format(send_time, '%Y-%m-%d') between #{startTime} and #{endTime}
+        group by
+            final_result,days
+        ORDER BY days
+    </select>
+
+
+    <select id="querySendDetailByOperator" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.SendDetailResp">
+        select count(1) total,final_result from robot_phone_result
+        WHERE
+        <if test="specificTime != null and specificTime != ''">
+            DATE_FORMAT(send_time,'%Y-%m-%d') = #{specificTime}
+        </if>
+        <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+            date_format(send_time, '%Y-%m-%d') between #{startTime} and #{endTime}
+        </if>
+        <if test="callerAccount != null and callerAccount != ''">
+            and caller_account = #{callerAccount}
+        </if>
+        group by final_result;
+    </select>
+
+    <select id="querySendDetailByResource" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.SendDetailResp">
+        select count(1) total,message_resource from robot_phone_result
+        WHERE
+        <if test="specificTime != null and specificTime != ''">
+            DATE_FORMAT(send_time,'%Y-%m-%d') = #{specificTime}
+        </if>
+        <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+            date_format(send_time, '%Y-%m-%d') between #{startTime} and #{endTime}
+        </if>
+        <if test="callerAccount != null and callerAccount != ''">
+            and caller_account = #{callerAccount}
+        </if>
+        group by message_resource;
+    </select>
+
+    <select id="querySendDetailGroupByOperator" parameterType="com.citc.nce.robot.req.SendPageReq" resultType="com.citc.nce.robot.vo.SendDetailResp">
+        SELECT
+        caller_account,
+        COUNT(1) AS total,
+        date_format(send_time, '%Y-%m-%d') AS days
+        from
+        robot_phone_result
+        WHERE
+        <if test="specificTime != null and specificTime != ''">
+            DATE_FORMAT(send_time,'%Y-%m-%d') = #{specificTime}
+        </if>
+        <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+            date_format(send_time, '%Y-%m-%d') between #{startTime} and #{endTime}
+        </if>
+        group by
+        caller_account,days
+        ORDER BY days
+    </select>
+
+    <select id="quantityByHours" parameterType="string" resultType="com.citc.nce.robot.vo.TestResp">
+        SELECT plan_id,plan_detail_id,DATE_FORMAT(send_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(send_time,'%Y-%m-%d') sendTimeDay,caller_account AS operator,creator
+        from robot_phone_result
+        WHERE
+            DATE_FORMAT(send_time,'%Y-%m-%d') = #{specificTime}
+        GROUP BY plan_id,plan_detail_id,sendTimeDay,sendTimeHour,caller_account,creator
+    </select>
+
+    <select id="quantityRobotSend" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num,DATE_FORMAT(send_time,'%H:00') sendTimeHour,caller_account as operator,message_resource,creator
+        FROM robot_phone_result
+        WHERE DATE_FORMAT(send_time,'%Y-%m-%d') = #{yesterday}
+        AND message_resource = '2'
+        GROUP BY sendTimeHour,operator,message_resource,creator
+    </select>
+
+
+    <select id="quantityUnknow" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num ,plan_id,send_result,plan_detail_id,DATE_FORMAT(send_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(send_time,'%Y-%m-%d') sendTimeDay,caller_account AS operator,creator
+        from robot_phone_result
+        WHERE
+        DATE_FORMAT(send_time,'%Y-%m-%d') = #{yesterday}
+        AND send_result = '0'
+        GROUP BY plan_id,send_result,plan_detail_id,sendTimeDay,sendTimeHour,caller_account,creator
+    </select>
+
+    <select id="quantitySuccess" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num ,plan_id,send_result,plan_detail_id,DATE_FORMAT(receipt_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(receipt_time,'%Y-%m-%d') sendTimeDay,caller_account AS operator,creator, DATE_FORMAT(send_time,'%Y-%m-%d') otherTimeDay
+        from robot_phone_result
+        WHERE
+            DATE_FORMAT(receipt_time,'%Y-%m-%d') = #{yesterday}
+          AND (send_result = '1' or send_result = '6')
+        GROUP BY plan_id,send_result,plan_detail_id,sendTimeDay,sendTimeHour,caller_account,creator,otherTimeDay
+    </select>
+
+    <select id="quantityFailed" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num ,plan_id,send_result,plan_detail_id,DATE_FORMAT(receipt_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(receipt_time,'%Y-%m-%d') sendTimeDay,caller_account AS operator,creator,DATE_FORMAT(send_time,'%Y-%m-%d') otherTimeDay
+        from robot_phone_result
+        WHERE
+            DATE_FORMAT(receipt_time,'%Y-%m-%d') = #{yesterday}
+          AND send_result = '2'
+        GROUP BY plan_id,send_result,plan_detail_id,sendTimeDay,sendTimeHour,caller_account,creator,otherTimeDay
+    </select>
+
+    <select id="quantityRead" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num ,plan_id,send_result,plan_detail_id,DATE_FORMAT(read_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(read_time,'%Y-%m-%d') sendTimeDay,caller_account AS operator,creator,DATE_FORMAT(send_time,'%Y-%m-%d') otherTimeDay
+        from robot_phone_result
+        WHERE
+            DATE_FORMAT(read_time,'%Y-%m-%d') = #{yesterday}
+          AND send_result = '6'
+        GROUP BY plan_id,send_result,plan_detail_id,sendTimeDay,sendTimeHour,caller_account,creator,otherTimeDay
+    </select>
+
+    <select id="quantitySendAmount" parameterType="string" resultType="com.citc.nce.robot.vo.RobotSendResp">
+        SELECT COUNT(1) num ,plan_id,send_result,plan_detail_id,DATE_FORMAT(send_time,'%H:00') sendTimeHour,
+               DATE_FORMAT(send_time,'%Y-%m-%d') sendTimeDay,caller_account AS operator,creator
+        from robot_phone_result
+        WHERE
+            DATE_FORMAT(send_time,'%Y-%m-%d') = #{yesterday}
+        GROUP BY plan_id,send_result,plan_detail_id,sendTimeDay,sendTimeHour,caller_account,creator
+    </select>
+
+    <select id="quantitySendAmountTotal" parameterType="com.citc.nce.robot.req.QueryCountReq" resultType="Long">
+        SELECT COUNT(1) num
+        from robot_phone_result
+        WHERE
+            DATE_FORMAT(send_time,'%Y-%m-%d') = #{time} and creator
+    </select>
+
+    <select id="quantitySendGroupTotal" parameterType="com.citc.nce.robot.req.QueryCountReq" resultType="Long">
+        SELECT COUNT(1) num
+        from robot_phone_result
+        WHERE
+            DATE_FORMAT(send_time,'%Y-%m-%d') = #{time} and message_resource = 1
+    </select>
+</mapper>

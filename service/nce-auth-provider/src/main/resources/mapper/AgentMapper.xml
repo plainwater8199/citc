@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.csp.agent.dao.AgentDao">
+
+    <select id="queryAgentList" resultType="com.citc.nce.auth.csp.account.vo.AgentResp">
+        select agent_name, agent_code, id from chatbot_csp_agent_info where creator = #{userId}
+    </select>
+
+</mapper>

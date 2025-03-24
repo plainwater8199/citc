@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.developer.dao.DeveloperCustomer5gApplicationMapper">
+
+    <select id="searchCustomersManager" resultType="com.citc.nce.developer.vo.DeveloperCustomer5gManagerVo">
+        select dc5ga.customer_id as customer_id,dc5ga.application_state as state,dc5ga.application_template_state as
+        templateState,dc5ga.application_name as application_name,
+        dc5ga.unique_id as uniqueId,dc5ga.create_time as creatTime
+        from developer_customer_5g_application dc5ga
+        where dc5ga.csp_id = #{cspId} and dc5ga.delete_time is null
+        <if test="customerId != null and customerId != ''">
+            and dc5ga.customer_id = #{customerId}
+        </if>
+        <if test="applicationName != null and applicationName != '' ">
+            and dc5ga.application_name like concat('%',#{applicationName},'%')
+        </if>
+        <if test="state != null">
+            <choose>
+                <when test="state == 0 or state == 1">
+                    and dc5ga.application_state = #{state}
+                </when>
+                <otherwise>
+                    and dc5ga.application_template_state = #{state}
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <select id="selectListEncode" resultType="com.citc.nce.developer.entity.DeveloperCustomer5gApplicationDo">
+        select id, app_secret ,creator ,create_time ,updater,update_time
+        from developer_customer_5g_application
+        where char_length(app_secret) &lt;= 32;
+    </select>
+</mapper>

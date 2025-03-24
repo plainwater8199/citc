@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.citc.nce</groupId>
+        <artifactId>service</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+
+    <artifactId>nce-callback-provider</artifactId>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-authcenter-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-filecenter-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-auth-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-im-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-rebot-files-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-robot-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-security</artifactId>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.cuca</groupId>
+            <artifactId>cucasecuritysdk</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-mybatis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- SpringCloud Alibaba Nacos Config -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-mybatis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-feignserver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.skywalking</groupId>
+            <artifactId>apm-toolkit-logback-1.x</artifactId>
+            <version>${apm-toolkit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-circuitbreaker-sentinel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-callback-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-facade</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.citc.nce</groupId>
+            <artifactId>nce-common-seata</artifactId>
+        </dependency>
+
+
+    </dependencies>
+</project>

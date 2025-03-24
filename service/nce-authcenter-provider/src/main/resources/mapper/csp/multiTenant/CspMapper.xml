@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.authcenter.csp.multitenant.dao.CspMapper">
+
+    <select id="existByTableName" resultType="java.util.Map" parameterType="java.lang.String">
+        show
+        tables like "${tableName}"
+    </select>
+    <select id="queryByNameOrPhone" resultType="com.citc.nce.authcenter.csp.vo.UserInfoVo"
+            parameterType="java.lang.String">
+        select user.id,
+        user.user_id,
+        user.name,
+        user.phone,
+        user.mail,
+        csp.csp_id,
+        uei.enterprise_name
+        from user
+        left join csp on user.user_id = csp.user_id
+        left join user_enterprise_identification uei on uei.user_id = user.user_id
+        where csp.deleted = 0
+        <if test="nameOrPhone !=null and nameOrPhone != ''">
+            and (user.name like concat('%',#{nameOrPhone},'%') or user.phone like concat('%',#{nameOrPhone},'%'))
+        </if>
+    </select>
+    <select id="getByIdList" resultType="com.citc.nce.authcenter.csp.vo.UserInfoVo">
+        select user.id,
+        user.user_id,
+        user.name,
+        user.phone,
+        user.mail,
+        csp.csp_id,
+        user.temp_store_perm,
+        uei.enterprise_account_name,
+        uei.enterprise_name
+        from user
+        left join csp on user.user_id = csp.user_id
+        left join user_enterprise_identification uei on uei.user_id = user.user_id
+        where csp.deleted = 0
+        <if test="idList !=null and idList.size != 0">
+            and csp.csp_id in
+            <foreach collection="idList" open="(" close=")" separator="," item="id">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+    <select id="listAll" resultType="com.citc.nce.authcenter.csp.vo.resp.CspMealCspInfo">
+        SELECT user.user_id userId,
+        user.phone cspPhone,
+        user.name cspUserName,
+        csp.csp_id cspId,
+        uei.enterprise_name,
+        uei.enterprise_account_name
+        FROM user
+        INNER JOIN csp ON user.user_id = csp.user_id
+        INNER JOIN user_enterprise_identification uei on user.user_id = uei.user_id
+        <where>
+            AND csp.deleted = 0 AND user.deleted = 0
+            <if test="query.cspUserName !=null and query.cspUserName !=''">
+                and user.name LIKE concat('%',#{query.cspUserName},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

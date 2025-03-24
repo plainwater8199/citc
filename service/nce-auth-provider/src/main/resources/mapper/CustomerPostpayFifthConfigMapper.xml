@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.certificate.dao.UserCertificateOptionsDao">
+
+    <select id="getList" resultType="com.citc.nce.auth.certificate.entity.UserCertificateOptionsDo"
+            parameterType="com.citc.nce.auth.user.vo.req.UserCertificationOptionListDBVO">
+        SELECT
+        id, certificate_id, user_id, certificate_apply_status, apply_time, approval_time,
+        certificate_status, creator, create_time, updater, update_time, deleted, deleted_time, business_id, remark,
+        is_active
+        from user_certificate_options
+        where deleted=0 and user_id= #{userId}
+        <if test="userCertificate != null and userCertificate.size > 0">
+            AND certificate_id in
+            <foreach collection="userCertificate" item="ucId" open="(" separator="," close=")">
+                #{ucId}
+            </foreach>
+        </if>
+
+    </select>
+    <select id="selectCertificateOptionsList" resultType="com.citc.nce.auth.certificate.vo.resp.UserCertificateResp"
+            parameterType="java.lang.String">
+        SELECT a.certificate_name,a.certificate_img,a.detail,a.id AS 'certificateId',a.protal,b.id,
+        IFNULL(b.user_id,#{userId}) AS 'userId' ,b.certificate_apply_status,b.certificate_status
+        FROM user_certificate a
+        LEFT JOIN user_certificate_options b
+        ON a.id = b.certificate_id
+        AND b.user_id =  #{userId}
+        AND b.deleted = 0
+        AND a.deleted = 0
+        AND a.protal = 1
+        ORDER BY b.certificate_apply_status DESC,a.id
+    </select>
+
+</mapper>

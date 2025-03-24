@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.mapper.RobotPhoneUplinkResultMapper">
+    <select id="selectAnyClick" resultType="string">
+        SELECT DISTINCT phone_num FROM  robot_phone_uplink_result WHERE plan_detail_id = #{detailId}  AND btn_uuid IS NOT null and UNIX_TIMESTAMP(create_time) &lt;= UNIX_TIMESTAMP(#{nowStr});
+    </select>
+
+</mapper>

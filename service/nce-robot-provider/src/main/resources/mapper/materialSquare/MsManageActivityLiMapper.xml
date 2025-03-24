@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.materialSquare.dao.MsManageActivityLiMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.materialSquare.entity.MsManageActivityLi">
+        <id column="ms_activity_li_id" property="msActivityLiId"/>
+        <result column="ms_activity_content_id" property="msActivityContentId"/>
+        <result column="mss_id" property="mssId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="creator" property="creator"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ms_activity_li_id, ms_activity_content_id, mss_id, create_time, creator,deleted
+    </sql>
+
+
+    <select id="selectActivityLiDiscountPriceInfo" resultType="com.citc.nce.materialSquare.vo.MsSummaryDiscountPrice"
+            parameterType="java.lang.Long">
+        SELECT
+            li.mss_id,
+            content.create_time as msActivityCreateTime,
+            content.creator as msActivityCreator,
+            li.ms_activity_li_id,
+            li.ms_activity_content_id,
+            content.promotion_type,
+            content.discount_rate
+        FROM
+            ms_manage_activity_li li LEFT JOIN ms_manage_activity_content content
+                                               ON li.ms_activity_content_id=content.ms_activity_content_id
+        WHERE li.mss_id = #{mssId}
+        order by content.create_time desc
+    </select>
+
+</mapper>

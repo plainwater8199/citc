@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.dataStatistics.dao.DataStatisticsMapper1">
+
+
+    <select id="sceneTopFive" resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityTopResp">
+    SELECT SUM(a.process_triggers_num) AS num, a.robot_scene_node_id, b.scene_name
+    FROM process_quantity_days a
+    LEFT JOIN robot_scene_node b ON a.robot_scene_node_id = b.id
+    WHERE a.user_id = #{userId} AND a.deleted = 0 AND b.deleted = 0
+    GROUP BY a.robot_scene_node_id
+    ORDER BY SUM(a.process_triggers_num) ${sort}
+    LIMIT 5
+    </select>
+
+    <select id="processTopFive" resultType="com.citc.nce.dataStatistics.vo.resp.ProcessQuantityTopResp">
+    SELECT SUM(a.process_triggers_num) AS num, a.robot_scene_node_id,a.robot_process_setting_node_id, b.scene_name,c.process_name
+    FROM process_quantity_days a
+    LEFT JOIN robot_scene_node b ON a.robot_scene_node_id = b.id
+    LEFT JOIN robot_process_setting_node c ON a.robot_process_setting_node_id = c.id
+    WHERE a.user_id = #{userId} AND a.deleted = 0 AND b.deleted = 0 AND c.deleted = 0
+    GROUP BY a.robot_process_setting_node_id,a.robot_scene_node_id
+    ORDER BY SUM(a.process_triggers_num) ${sort}
+    LIMIT 5
+    </select>
+
+    <select id="converInteractYesterdayPage"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ConversationalInteractionYesterdayResp"
+            parameterType="com.citc.nce.dataStatistics.vo.req.OperatorTypePageReq">
+    SELECT SUM(send_num) AS sendNum, SUM(upside_num) AS upsideNum, SUM(session_num) AS sessionNum, SUM(effective_session_num) AS effectiveSessionNum,hours
+    FROM conversational_interaction_yesterday
+    WHERE deleted = 0 AND operator_type = #{operatorType}
+    GROUP BY hours
+    ORDER BY hours ASC
+    LIMIT #{pageNo} , #{pageSize}
+    </select>
+
+    <select id="converInteractYesterdayNum" resultType="java.lang.Long"
+            parameterType="com.citc.nce.dataStatistics.vo.req.OperatorTypePageReq">
+    SELECT COUNT(1)
+    FROM conversational_interaction_yesterday
+    WHERE deleted = 0 AND operator_type = #{operatorType}
+    GROUP BY hours
+    ORDER BY hours ASC
+    </select>
+
+    <select id="converInteractDaysPage"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ConversationalInteractionDaysResp"
+            parameterType="com.citc.nce.dataStatistics.vo.req.OperatorTypePageReq">
+    SELECT SUM(send_num) AS sendNum, SUM(upside_num) AS upsideNum, SUM(session_num) AS sessionNum, SUM(effective_session_num) AS effectiveSessionNum,days
+    FROM conversational_interaction_days
+    WHERE deleted = 0 AND operator_type = #{operatorType}
+    GROUP BY days
+    ORDER BY days ASC
+    LIMIT #{pageNo} , #{pageSize}
+    </select>
+
+    <select id="converInteractDaysNum" resultType="java.lang.Long"
+            parameterType="com.citc.nce.dataStatistics.vo.req.OperatorTypePageReq">
+    SELECT COUNT(1)
+    FROM conversational_interaction_days
+    WHERE deleted = 0 AND operator_type = #{operatorType}
+    GROUP BY days
+    ORDER BY days ASC
+    </select>
+
+    <select id="converInteractWeeksPage"
+            resultType="com.citc.nce.dataStatistics.vo.resp.ConversationalInteractionWeeksResp"
+            parameterType="com.citc.nce.dataStatistics.vo.req.OperatorTypePageReq">
+    SELECT SUM(send_num) AS sendNum, SUM(upside_num) AS upsideNum, SUM(session_num) AS sessionNum, SUM(effective_session_num) AS effectiveSessionNum,weeks
+    FROM conversational_interaction_weeks
+    WHERE deleted = 0 AND operator_type = #{operatorType}
+    GROUP BY weeks
+    ORDER BY weeks ASC
+    LIMIT #{pageNo} , #{pageSize}
+    </select>
+
+    <select id="converInteractWeeksNum" resultType="java.lang.Long"
+            parameterType="com.citc.nce.dataStatistics.vo.req.OperatorTypePageReq">
+    SELECT COUNT(1)
+    FROM conversational_interaction_weeks
+    WHERE deleted = 0 AND operator_type = #{operatorType}
+    GROUP BY weeks
+    ORDER BY weeks ASC
+    </select>
+
+
+</mapper>

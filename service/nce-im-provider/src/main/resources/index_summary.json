@@ -1,0 +1,107 @@
+{
+  "mappings": {
+    "properties": {
+      "auditFailResult": {
+        "type": "text"
+      },
+      "auditStatus": {
+        "type": "keyword"
+      },
+      "contentVersion": {
+        "type": "long"
+      },
+      "coverFile": {
+        "type": "text"
+      },
+      "coverFileName": {
+        "type": "text"
+      },
+      "coverType": {
+        "type": "keyword"
+      },
+      "createTime": {
+        "type": "date"
+      },
+      "creator": {
+        "type": "keyword"
+      },
+      "cspId": {
+        "type": "keyword"
+      },
+      "deleted": {
+        "type": "keyword"
+      },
+      "firstPutawayTime": {
+        "type": "date"
+      },
+      "introduceVersion": {
+        "type": "long"
+      },
+      "lastPutawayTime": {
+        "type": "date"
+      },
+      "likeNum": {
+        "type": "long"
+      },
+      "likesCount": {
+        "type": "long"
+      },
+      "msDesc": {
+        "type": "text"
+      },
+      "msId": {
+        "type": "keyword"
+      },
+      "msNum": {
+        "type": "keyword"
+      },
+      "msTag": {
+        "type": "text"
+      },
+      "msType": {
+        "type": "keyword"
+      },
+      "mssId": {
+        "type": "keyword"
+      },
+      "name": {
+        "type": "text"
+      },
+      "originalPrice": {
+        "type": "float"
+      },
+      "payType": {
+        "type": "keyword"
+      },
+      "publishTime": {
+        "type": "date"
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "templateStatus": {
+        "type": "keyword"
+      },
+      "updateTime": {
+        "type": "date"
+      },
+      "updater": {
+        "type": "keyword"
+      },
+      "viewCount": {
+        "type": "long"
+      },
+      "viewNum": {
+        "type": "long"
+      },
+      "worksLibraryStatus": {
+        "type": "keyword"
+      }
+    }
+  },
+  "settings": {
+    "index": {
+      "analysis.analyzer.default.type": "ik_max_word"
+    }
+  }
+}

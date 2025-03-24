@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.tenant.robot.dao.RobotNodeResult1Dao">
+
+    <!-- 创建表SQL，参数为表名 -->
+    <update id="createTable" parameterType="string">
+        CREATE TABLE IF NOT EXISTS ${tableName} (
+                                      `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                      `plan_detail_id` bigint(20) NOT NULL COMMENT '盒子id',
+                                      `message_id` varchar(64) NOT NULL COMMENT '消息id',
+                                      `operator` varchar(64) DEFAULT NULL COMMENT '运营商',
+                                      `creator` varchar(64) DEFAULT NULL COMMENT '创建者',
+                                      `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+                                      `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+                                      `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否删除',
+                                      `delete_time` datetime DEFAULT NULL COMMENT '删除时间',
+                                      `updater` varchar(64) DEFAULT NULL COMMENT '更新者',
+                                      PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8
+
+    </update>
+
+    <update id="dropTable" parameterType="string">
+        DROP TABLE IF EXISTS ${tableName};
+    </update>
+
+    <update id="clearTable" parameterType="string">
+        TRUNCATE `${tableName}`;
+    </update>
+</mapper>

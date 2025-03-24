@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.readingLetter.dao.ReadingLetterParseRecordDailyReportDao">
+
+
+    <select id="selectRecords"
+            resultType="com.citc.nce.auth.readingLetter.dataStatistics.vo.ReadingLetterDailyReportSelectVo">
+
+        select short_url_id , sum(success_number) as success_number
+        from reading_letter_parse_record_daily_report
+        where
+        customer_id=#{customerId}
+
+        <if test="shortUrlIds!= null and shortUrlIds.size() >0">
+            and short_url_id in
+            <foreach collection="shortUrlIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        and day_time between #{startTime} and #{endTime}
+        and sms_type = 2
+        group by short_url_id
+
+
+    </select>
+    <select id="selectFifthtRecords"
+            resultType="com.citc.nce.auth.readingLetter.dataStatistics.vo.FifthReadingLetterDailyReportSelectVo">
+
+        select task_id, chatbot_account ,group_send_id,sum(success_number) as
+        success_number,platform_template_id,source_type
+        from reading_letter_parse_record_daily_report
+        where
+        customer_id=#{customerId}
+
+        <if test="planIds!= null and planIds.size() >0">
+            and group_send_id in
+            <foreach collection="planIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and source_type = 1
+        </if>
+        <if test="chatbotAccounts!= null and chatbotAccounts.size() >0">
+            and chatbot_account in
+            <foreach collection="chatbotAccounts" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        and day_time between #{startTime} and #{endTime}
+        and sms_type = 1
+        group by task_id,chatbot_account,group_send_id,platform_template_id,source_type
+    </select>
+    <select id="selectAllByCspId" resultType="com.citc.nce.readingLetter.vo.CspReadingLetterNumVo">
+
+        select operator_code,sum(success_number) as num
+        from reading_letter_parse_record_daily_report
+        where
+        customer_id like concat(#{cspId}, '%')
+        and sms_type = #{smsType}
+        <if test="operatorCode!= null">
+            and operator_code = #{operatorCode}
+        </if>
+        group by operator_code
+    </select>
+
+</mapper>

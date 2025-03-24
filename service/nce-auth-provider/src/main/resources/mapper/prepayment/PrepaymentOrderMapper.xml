@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.prepayment.dao.PrepaymentOrderMapper">
+
+    <select id="query5gOrder" resultType="com.citc.nce.auth.prepayment.vo.FifthPlanOrderListVo">
+        select po.plan_id,
+               (po.plan_detail ->> '$.name') as planName,
+               po.create_time,
+               textDetail.total_amount           as textLimit,
+               textDetail.available_amount       as textUsable,
+               textDetail.used_amount            as textUsage,
+               textDetail.expired_amount         as textInvalid,
+
+               richDetail.total_amount           as richLimit,
+               richDetail.available_amount       as richUsable,
+               richDetail.used_amount            as richUsage,
+               richDetail.expired_amount         as richInvalid,
+
+               conversationDetail.total_amount    as conversationLimit,
+               conversationDetail.available_amount   as conversationUsable,
+               conversationDetail.used_amount    as conversationUsage,
+               conversationDetail.expired_amount  as conversationInvalid
+        from prepayment_order po
+                 left join prepayment_order_detail textDetail
+                           on po.order_id = textDetail.order_id
+                               and textDetail.msg_sub_type = 0
+                 left join prepayment_order_detail richDetail
+                           on po.order_id = richDetail.order_id
+                               and richDetail.msg_sub_type = 1
+                 left join prepayment_order_detail conversationDetail
+                           on po.order_id = conversationDetail.order_id
+                               and conversationDetail.msg_sub_type = 2
+        where deleted_time = '1000-01-01 00:00:00'
+          and po.msg_type = 1
+          and status = 2
+          and account_id = #{chatbotAccount}
+    </select>
+    <select id="querySmsOrder" resultType="com.citc.nce.auth.prepayment.vo.SmsPlanOrderListVo">
+        select po.plan_id,
+               (po.plan_detail ->> '$.name') as planName,
+               po.create_time,
+               pod.total_amount  as `limit`,
+               pod.available_amount as `usable`,
+               pod.used_amount as `usage`,
+               pod.expired_amount as `invalid`
+        from prepayment_order po
+                 left join prepayment_order_detail pod
+                           on po.order_id = pod.order_id
+        where deleted_time = '1000-01-01 00:00:00'
+          and po.msg_type = 3
+          and status = 2
+          and account_id = #{accountId}
+    </select>
+    <select id="queryVideoSmsOrder" resultType="com.citc.nce.auth.prepayment.vo.VideoSmsPlanOrderListVo">
+        select po.plan_id,
+               (po.plan_detail ->> '$.name') as planName,
+               po.create_time,
+               pod.total_amount  as `limit`,
+               pod.available_amount as `usable`,
+               pod.used_amount as `usage`,
+               pod.expired_amount as `invalid`
+        from prepayment_order po
+                 left join prepayment_order_detail pod
+                           on po.order_id = pod.order_id
+        where deleted_time = '1000-01-01 00:00:00'
+          and po.msg_type = 2
+          and status = 2
+          and account_id = #{accountId}
+    </select>
+    <select id="customerSearch" resultType="com.citc.nce.auth.prepayment.vo.PrepaymentOrderListVo">
+        select id,
+        pay_amount,
+        charge_amount,
+        consume_category,
+        order_id,
+        msg_type,
+        plan_id,
+        amount,
+        status,
+        pay_time,
+        serial_number,
+        plan_detail,
+        create_time,
+        case msg_type
+        when 1 then (select account_name
+        from csp_customer_chatbot_account
+        where csp_customer_chatbot_account.chatbot_account = prepayment_order.account_id
+        and csp_customer_chatbot_account.deleted = 0)
+        when 2 then (select account_name
+        from csp_video_sms_account
+        where csp_video_sms_account.account_id = prepayment_order.account_id
+        and csp_video_sms_account.deleted = 0)
+        when 3 then (select account_name
+        from csp_sms_account
+        where csp_sms_account.account_id = prepayment_order.account_id
+        and csp_sms_account.deleted = 0)
+        end as accountName
+        from prepayment_order
+        where customer_id = #{customerId}
+        and deleted_time = '1000-01-01 00:00:00'
+        <if test="orderId != null and orderId != ''">
+            and order_id like concat("%",#{orderId},"%")
+        </if>
+        <if test="type != null">
+            and msg_type = #{type}
+        </if>
+        <if test="consumeCategory != null">
+            and consume_category = #{consumeCategory}
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+        <if test="startTime != null">
+            and create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            and create_time &lt;= #{endTime}
+        </if>
+    </select>
+    <select id="managerSearch" resultType="com.citc.nce.auth.prepayment.vo.PrepaymentOrderManageListVo">
+        select po.id,
+        po.pay_amount,
+        po.charge_amount,
+        po.consume_category,
+        po.order_id,
+        po.msg_type,
+        po.plan_id,
+        po.amount,
+        po.plan_detail,
+        po.status,
+        po.pay_time,
+        po.serial_number,
+        po.note,
+        po.customer_id,
+        po.create_time,
+        uei.name as enterprise_account_name,
+        case po.msg_type
+        when 1 then (select account_name
+        from csp_customer_chatbot_account
+        where csp_customer_chatbot_account.chatbot_account = po.account_id
+        and csp_customer_chatbot_account.deleted = 0)
+        when 2 then (select account_name
+        from csp_video_sms_account
+        where csp_video_sms_account.account_id = po.account_id
+        and csp_video_sms_account.deleted = 0)
+        when 3 then (select account_name
+        from csp_sms_account
+        where csp_sms_account.account_id = po.account_id
+        and csp_sms_account.deleted = 0)
+        end as accountName
+        from prepayment_order po
+        left join ${customer_table} uei
+        on po.customer_id = uei.customer_id and uei.deleted = 0
+        where po.customer_id like concat("",#{cspId},"%")
+        and po.deleted_time = '1000-01-01 00:00:00'
+        <if test="orderId != null and orderId != ''">
+            and po.order_id like concat("%",#{orderId},"%")
+        </if>
+        <if test="type != null">
+            and po.msg_type = #{type}
+        </if>
+        <if test="consumeCategory != null">
+            and po.consume_category = #{consumeCategory}
+        </if>
+
+        <if test="status != null">
+            and po.status = #{status}
+        </if>
+        <if test="customerName != null and customerName!= ''">
+            and uei.name like concat("%",#{customerName},"%")
+        </if>
+    </select>
+    <select id="selectByTOrderId" resultType="com.citc.nce.auth.prepayment.vo.PrepaymentOrderManageListVo"
+            parameterType="java.lang.Long">
+        select po.id,
+               po.order_id,
+               po.msg_type,
+               po.plan_id,
+               po.plan_detail,
+               po.amount,
+               po.plan_detail,
+               po.status,
+               po.pay_time,
+               po.serial_number,
+               po.note,
+               po.customer_id,
+               po.create_time,
+               po.charge_amount,
+               po.consume_category,
+               uei.enterprise_account_name,
+               case po.msg_type
+                   when 1 then (select account_name
+                                from csp_customer_chatbot_account
+                                where csp_customer_chatbot_account.chatbot_account = po.account_id
+                                  and csp_customer_chatbot_account.deleted = 0)
+                   when 2 then (select account_name
+                                from csp_video_sms_account
+                                where csp_video_sms_account.account_id = po.account_id
+                                  and csp_video_sms_account.deleted = 0)
+                   when 3 then (select account_name
+                                from csp_sms_account
+                                where csp_sms_account.account_id = po.account_id
+                                  and csp_sms_account.deleted = 0)
+                   when 4 then (select account_name
+                                from csp_reading_letter_account
+                                where csp_sms_account.account_id = postpay_order_detail.account_id
+                                  and csp_sms_account.deleted = 0)
+                   end as accountName
+        from prepayment_order po
+                 left join user_enterprise_identification uei
+                           on po.customer_id = uei.user_id and uei.deleted = 0
+        where po.id = #{id}
+          and po.deleted_time = '1000-01-01 00:00:00'
+    </select>
+
+    <select id="enableRefundByCustomerId" resultType="java.lang.String" parameterType="java.lang.String">
+        SELECT distinct t_order.customer_id
+        FROM prepayment_order t_order
+        WHERE deleted_time = '1000-01-01 00:00:00'
+        AND STATUS =2
+        <if test="cspId != null and cspId !=''">
+            AND t_order.customer_id like concat("",#{cspId},"%")
+        </if>
+        <if test="customerId != null and customerId !=''">
+            AND t_order.customer_id= #{customerId}
+        </if>
+        AND t_order.amount - t_order.refund &gt; 0
+    </select>
+    <select id="enableRefundMsgType" resultType="com.citc.nce.common.core.enums.MsgTypeEnum"
+            parameterType="java.lang.String">
+        SELECT DISTINCT t_order.msg_type
+        FROM prepayment_order t_order
+        WHERE deleted_time = '1000-01-01 00:00:00'
+          AND STATUS = 2
+          AND t_order.customer_id = #{customerId}
+          AND t_order.amount - t_order.refund &gt; 0
+    </select>
+
+    <select id="enableRefundAccount" resultType="java.lang.String">
+        SELECT DISTINCT t_order.account_id
+        FROM prepayment_order t_order
+        WHERE deleted_time = '1000-01-01 00:00:00'
+          AND STATUS = 2
+          AND t_order.customer_id = #{customerId}
+          AND t_order.msg_type = #{msgTypeEnum}
+          AND t_order.amount - t_order.refund &gt; 0
+    </select>
+
+    <select id="enableRefundOrder" resultType="java.lang.Long">
+        SELECT t_order.id
+        FROM prepayment_order t_order
+        WHERE deleted_time = '1000-01-01 00:00:00'
+          AND STATUS = 2
+          AND t_order.customer_id = #{customerId}
+          AND t_order.msg_type = #{msgTypeEnum}
+          AND t_order.account_id = #{accountId}
+          AND t_order.amount - t_order.refund &gt; 0
+    </select>
+
+    <select id="sumPreInvoicableAmount" resultType="java.math.BigDecimal" parameterType="java.lang.String">
+        select sum(invoicable_amount)
+        from prepayment_order
+        where deleted_time = '1000-01-01 00:00:00'
+          AND customer_id = #{customerId}
+          AND STATUS != 1
+    </select>
+    <select id="checkPaymentForMsgType" resultType="java.lang.Integer">
+        select msg_type
+        from prepayment_order
+        where creator = #{customerId}
+         and pay_time is not null
+        group by msg_type
+    </select>
+</mapper>

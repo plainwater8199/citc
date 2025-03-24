@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.authcenter.largeModel.dao.LargeModelPromptDao">
+
+    <select id="queryList" parameterType="com.citc.nce.authcenter.largeModel.vo.PromptReq"
+            resultType="com.citc.nce.authcenter.largeModel.vo.PromptResp">
+        select
+        lmp.id,
+        lmp.model_id,
+        lmp.type,
+        lmp.prompt_setting,
+        lmp.prompt_rule,
+        lmp.prompt_example,
+        lm.model_name,
+        lm.model_product,
+        lm.model_code,
+        lmp.status,
+        lmp.create_time,
+        lmp.update_time
+
+        <include refid="selectPageList"/>
+        order by lmp.create_time desc
+        limit #{pageNo} , #{pageSize}
+    </select>
+
+    <select id="queryListCount" parameterType="com.citc.nce.authcenter.largeModel.vo.PromptReq"
+            resultType="java.lang.Long">
+        select count(1)
+        <include refid="selectPageList"/>
+    </select>
+
+
+    <select id="queryDetail" parameterType="java.lang.Long"
+            resultType="com.citc.nce.authcenter.largeModel.vo.PromptDetailResp">
+        select
+        lmp.id,
+        lmp.model_id,
+        lm.model_name,
+        lmp.prompt_setting,
+        lmp.prompt_rule,
+        lmp.prompt_example
+        from large_model_prompt lmp left join large_model lm on lmp.model_id = lm.id and lm.deleted = 0
+        where lmp.deleted = 0 and lmp.id = #{id}
+    </select>
+
+    <sql id="selectPageList">
+        from large_model_prompt lmp
+        left join large_model lm on lmp.model_id = lm.id
+        <where>
+        </where>
+    </sql>
+
+
+</mapper>
+
+
+
+

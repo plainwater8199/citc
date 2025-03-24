@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.materialSquare.dao.MsManageBannerMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.materialSquare.entity.MsManageBanner">
+        <id column="ms_banner_id" property="msBannerId"/>
+        <result column="name" property="name"/>
+        <result column="img_file_id" property="imgFileId"/>
+        <result column="img_format" property="imgFormat"/>
+        <result column="img_name" property="imgName"/>
+        <result column="img_length" property="imgLength"/>
+        <result column="ms_activity_id" property="msActivityId"/>
+        <result column="order_num" property="orderNum"/>
+        <result column="deleted" property="deleted"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="creator" property="creator"/>
+        <result column="updater" property="updater"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ms_banner_id, name, img_file_id, img_format, img_name, img_length, ms_activity_id, order_num, deleted, create_time, update_time, creator, updater
+    </sql>
+    <update id="autoIncrement">
+        update ms_manage_banner set order_num = order_num + 1
+        where true
+    </update>
+
+</mapper>

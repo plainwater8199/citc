@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.misc.dictionary.mapper.BaseAreaMapper">
+
+    <select id="findRegion" resultType="com.citc.nce.misc.dictionary.vo.resp.BaseAreaResp">
+        SELECT DISTINCT
+            base_id,name,parent_id FROM base_area where 1=1 and
+            parent_id = '-1'
+    </select>
+
+    <select id="findByParentId" resultType="com.citc.nce.misc.dictionary.vo.resp.BaseAreaResp" parameterType="com.citc.nce.misc.dictionary.vo.req.BaseAreaReq">
+        SELECT DISTINCT
+            base_id,name,parent_id FROM base_area where 1=1 and
+            parent_id = #{parentId}
+    </select>
+
+
+    <select id="findIndustry" resultType="com.citc.nce.misc.dictionary.vo.resp.BaseAreaResp">
+        SELECT DISTINCT
+            base_id,name,parent_id FROM base_area where 1=1 and
+            parent_id = '-100'
+    </select>
+</mapper>

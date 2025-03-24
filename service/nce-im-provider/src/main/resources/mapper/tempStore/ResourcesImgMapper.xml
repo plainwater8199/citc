@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.im.tempStore.mapper.ResourcesImgMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.robot.api.tempStore.domain.ResourcesImg">
+        <id column="img_id" property="imgId"/>
+        <result column="img_group_id" property="imgGroupId" />
+        <result column="picture_format" property="pictureFormat" />
+        <result column="picture_name" property="pictureName" />
+        <result column="picture_size" property="pictureSize" />
+        <result column="picture_urlId" property="pictureUrlid" />
+        <result column="thumbnail_tid" property="thumbnailTid" />
+        <result column="creator" property="creator" />
+        <result column="create_time" property="createTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        img_id,img_group_id, picture_format, picture_name, picture_size, picture_urlId, thumbnail_tid, creator, create_time, deleted
+    </sql>
+    <select id="listByIdsDel" resultType="com.citc.nce.robot.api.tempStore.domain.ResourcesImg">
+        select *
+        from ts_resources_img
+        where img_id in
+        <foreach collection="ids" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </select>
+
+</mapper>

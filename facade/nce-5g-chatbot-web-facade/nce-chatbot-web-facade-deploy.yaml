@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: chatbot-web
+  name: chatbot-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatbot-web
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: chatbot-web
+    spec:
+      imagePullSecrets:
+        - name: devsecret
+      containers:
+        - image: 10.136.30.167:10009/citc-nce/chatbot-web-facade:v1-0721.1
+          name: chatbot-web
+          ports:
+            - name: "http-8100"
+              containerPort: 8100
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1024Mi"
+            requests:
+              cpu: 0.5
+              memory: "512Mi"
+          env:
+            - name: NACOS_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-server-info
+                  key: NACOS_SERVER
+            - name: NACOS_NAMESPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-server-info
+                  key: NACOS_NAMESPACE
+            - name: NACOS_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-server-info
+                  key: NACOS_USER
+            - name: NACOS_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-server-info
+                  key: NACOS_PASSWORD
+          volumeMounts:
+          - mountPath: /home/license
+            name: secret-lic
+
+status: {}

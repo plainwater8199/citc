@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.csp.mediasms.template.dao.MediaSmsTemplateMapper">
+    <select id="searchTemplate" resultType="com.citc.nce.auth.csp.mediasms.template.vo.MediaSmsTemplateSimpleVo">
+        select distinct tmp.id as id,
+        tmp.template_name as template_name,
+        if(acc.deleted,null,acc.account_name) as account_name,
+        acc.deleted as deleted,
+        tmp.platform_template_id as platformTemplateId,
+        tmp.template_type as templateType,
+        tmp.create_time as create_time
+        from csp_video_sms_template tmp
+        left join csp_video_sms_account acc on tmp.account_id = acc.account_id
+        left join csp_video_sms_template_audit audit on tmp.id = audit.media_template_id
+        where tmp.deleted_time is null
+        and tmp.customer_id = #{userId}
+        <if test="templateName != null and templateName != ''">
+            and tmp.template_name like concat('%',#{templateName},'%')
+        </if>
+        <if test="templateType != null and templateType != ''">
+            and tmp.template_type = #{templateType}
+        </if>
+        <if test="accountId != null and accountId != ''">
+            and tmp.account_id = #{accountId}
+        </if>
+        <if test="operator != null and auditStatus != null">
+            and audit.operator = #{operator}
+            and audit.status = #{auditStatus}
+        </if>
+    </select>
+
+    <select id="getHaveTemplateAccountsByUserId"
+            resultType="com.citc.nce.auth.csp.mediasms.template.vo.MediaSmsHaveTemplateAccountVo">
+        select acc.id,
+               acc.account_id,
+               acc.account_name,
+               acc.status
+        from csp_video_sms_account acc
+                 right join (select account_id
+                             from csp_video_sms_template
+                             where customer_id = #{customerId}
+                             group by account_id) ids on acc.account_id = ids.account_id
+        order by acc.create_time desc;
+    </select>
+</mapper>

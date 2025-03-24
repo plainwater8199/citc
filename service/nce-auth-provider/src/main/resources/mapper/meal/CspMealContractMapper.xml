@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.meal.dao.CspMealContractMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.citc.nce.auth.meal.domain.CspMealContract">
+        <id column="contract_id" property="contractId" />
+        <result column="contract_no" property="contractNo" />
+        <result column="csp_id" property="cspId" />
+        <result column="status" property="status" />
+        <result column="valid_time" property="validTime" />
+        <result column="effective_time" property="effectiveTime" />
+        <result column="expire_time" property="expireTime" />
+        <result column="creator" property="creator" />
+        <result column="create_time" property="createTime" />
+        <result column="updater" property="updater" />
+        <result column="update_time" property="updateTime" />
+        <result column="deleted_time" property="deletedTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        contract_id, contract_no, csp_id, status, valid_time, effective_time, expire_time, creator,
+                   create_time, updater, update_time, deleted_time
+    </sql>
+
+    <select id="queryPage" resultType="com.citc.nce.auth.meal.vo.contract.CspMealContractPageInfo">
+        SELECT
+        csp_info.csp_id,
+        csp_info.csp_user_name cspUserName,
+        csp_info.phone cspPhone,
+        csp_info.enterprise_name enterpriseName,
+        csp_info.enterprise_account_name enterpriseAccountName,
+        cmc.contract_id ,
+        cmc.contract_no ,
+        cmc.csp_id ,
+        cmc.status ,
+        cmc.valid_time ,
+        cmc.effective_time ,
+        cmc.expire_time ,
+        cmc.creator,
+        cmc.create_time ,
+        cmc.updater ,
+        cmc.update_time ,
+        cmc.deleted_time ,
+        (SELECT sum(customer_number) as count
+        FROM csp_meal_contract_association
+        WHERE contract_id = cmc.contract_id
+        AND deleted_time IS NULL
+        ) mealNum
+        FROM csp_meal_contract cmc left join
+        (
+        SELECT csp.user_id,
+        user.phone,
+        user.name AS csp_user_name,
+        csp.csp_id,
+        uei.enterprise_account_name,
+        uei.enterprise_name
+        FROM user_enterprise_identification uei LEFT JOIN csp ON uei.user_id = csp.user_id
+        LEFT JOIN user ON user.user_id = csp.user_id
+        ) csp_info on cmc.csp_id = csp_info.csp_id
+        <where>
+            <if test="query.status !=null">
+                and status =#{query.status}
+            </if>
+            <if test="query.contractNo !=null and query.contractNo !=''">
+                and contract_no LIKE concat('%',#{query.contractNo},'%')
+            </if>
+
+            <if test="query.effectiveStartTime != null and query.effectiveEndTime ">
+                and effective_time &gt;= #{query.effectiveStartTime}
+                and  effective_time &lt;= #{query.effectiveEndTime}
+            </if>
+
+            <if test="query.expireStartTime != null and query.expireEndTime ">
+                and expire_time &gt;= #{query.expireStartTime}
+                and  expire_time &lt;= #{query.expireEndTime}
+            </if>
+
+            <if test="query.cspId != null and query.cspId !=''">
+                and csp_info.csp_id = #{query.cspId}
+            </if>
+            <if test="query.enterpriseName !=null and query.enterpriseName !=''">
+                and csp_info.enterprise_name LIKE concat('%',#{query.enterpriseName},'%')
+            </if>
+            <if test="query.enterpriseAccountName !=null and query.enterpriseAccountName !=''">
+                and csp_info.enterprise_account_name LIKE concat('%',#{query.enterpriseAccountName},'%')
+            </if>
+            <if test="true">
+                and deleted_time ='1000-01-01 00:00:00'
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectMealCspInfo" resultType="com.citc.nce.auth.meal.vo.contract.CspMealCspInfo">
+        SELECT csp.user_id,
+               user.phone cspPhone,
+               user.name cspUserName,
+               csp.csp_id,
+               uei.enterprise_account_name,
+               uei.enterprise_name
+        FROM user_enterprise_identification uei
+                 LEFT JOIN csp ON uei.user_id = csp.user_id
+                 LEFT JOIN user ON user.user_id = csp.user_id
+        where csp.csp_id = #{cspId}
+    </select>
+
+</mapper>

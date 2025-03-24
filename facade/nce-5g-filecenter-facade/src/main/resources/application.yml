@@ -1,0 +1,33 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: filecenter-facade
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:http://nacos-old.5g-dev.echo-isoftstone.cn}
+        namespace: ${NACOS_NAMESPACE:05a4b74a-59e0-4867-9faa-c05fdbf5180f}
+        username: ${NACOS_USER:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+      config:
+        server-addr: ${NACOS_SERVER:http://nacos-old.5g-dev.echo-isoftstone.cn}
+        file-extension: yaml
+        group: DEFAULT_GROUP
+        namespace: ${NACOS_NAMESPACE:05a4b74a-59e0-4867-9faa-c05fdbf5180f}
+        username: ${NACOS_USER:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+  config:
+    import:
+      - optional:nacos:nce-common.yaml
+      - optional:nacos:filecenter-facade.yaml
+      - optional:nacos:sentinel-circuitbreaker-rules.yml
+server:
+  port: 8105

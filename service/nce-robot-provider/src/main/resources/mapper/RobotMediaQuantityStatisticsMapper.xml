@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.citc.nce.dataStatistics.dao.RobotMediaQuantityStatisticsDao">
+
+    <!-- 创建表SQL，参数为表名 -->
+    <update id="createTable" parameterType="string">
+        CREATE TABLE ${tableName} (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+            `unknow_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '未知数量',
+            `success_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '成功数量',
+            `failed_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '失败数量',
+            `send_num` bigint(20) NOT NULL DEFAULT '0' COMMENT '群发总数',
+            `media_operator_code` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营商',
+            `plan_id` bigint(20) NOT NULL COMMENT '计划id',
+            `plan_detail_id` bigint(20) NOT NULL COMMENT '计划节点id',
+            `send_time_day` datetime NOT NULL COMMENT '发送时间(年月日)',
+            `send_time_hour` varchar(32) NOT NULL COMMENT '发送时间(小时)',
+            `creator` varchar(64) NOT NULL COMMENT '创建者',
+            `create_time` datetime NOT NULL COMMENT '创建时间',
+            `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+            `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否删除',
+            `delete_time` datetime DEFAULT NULL COMMENT '删除时间',
+            `updater` varchar(64) DEFAULT NULL COMMENT '更新者',
+            `media_account_id` varchar(50) NOT NULL DEFAULT '' COMMENT '富媒体账号id',
+             PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='视频短信数量统计表'
+
+    </update>
+
+
+    <select id="queryYesterdayActiveAccountData"
+            resultType="com.citc.nce.dataStatistics.dto.AccountStatisticsInfo">
+        SELECT
+            DATE_FORMAT(t.send_time_day,'%Y-%m-%d') AS activeTime,
+            count(Distinct t.media_account_id) AS sum
+        FROM ${tableName} t
+        WHERE t.send_time_day >= #{startDate} and t.send_time_day <![CDATA[<=]]> #{endDate}
+        <if test="accountList != null">
+            and t.media_account_id in
+            <foreach item ="id" collection="accountList" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY activeTime;
+    </select>
+
+
+
+    <select id="queryYesterdayChannelMsgSendData"
+            resultType="com.citc.nce.dataStatistics.dto.ChannelMsgSendInfo">
+        SELECT
+            t.media_operator_code as channelId,
+            DATE_FORMAT(t.send_time_day,'%Y-%m-%d') AS sendTime,
+            sum(t.send_num) AS sendSum
+        From robot_media_quantity_statistics t
+            WHERE t.send_time_day >= #{startDate} and t.send_time_day <![CDATA[<=]]> #{endDate}
+            <if test="accountList != null">
+                and t.media_account_id in
+                <foreach item ="id" collection="accountList" index="index" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        GROUP BY t.media_operator_code, sendTime;
+    </select>
+
+
+    <select id="queryAllMsgSendData"
+            resultType="com.citc.nce.dataStatistics.dto.ChannelMsgSendInfo">
+        SELECT
+            t.media_operator_code as channelId,
+            sum(t.send_num) AS sendSum
+        From ${tableName} t
+        <if test="accountList != null">
+            where t.media_account_id in
+            <foreach item ="id" collection="accountList" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY t.media_operator_code;
+    </select>
+
+
+    <select id="queryChannelMsgSendData"
+            resultType="com.citc.nce.dataStatistics.dto.ChannelMsgSendInfo">
+        SELECT
+            t.media_operator_code as channelId,
+            <choose>
+                <when test="hour == 1">
+                    t.send_time_hour AS sendTime,
+                </when>
+                <otherwise>
+                    DATE_FORMAT(t.send_time_day,'%Y-%m-%d') AS sendTime,
+                </otherwise>
+            </choose>
+            sum(t.send_num) AS sendSum
+        From ${tableName} t
+        WHERE
+            t.send_time_day >= #{startDate} and t.send_time_day <![CDATA[<=]]> #{endDate}
+            <if test="accountList != null">
+                and t.media_account_id in
+                <foreach item ="id" collection="accountList" index="index" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        GROUP BY t.media_operator_code, sendTime;
+    </select>
+
+
+    <select id="queryAccountMsgSendData"
+            resultType="com.citc.nce.dataStatistics.dto.ChannelMsgSendInfo">
+        SELECT
+        t.media_account_id as accountId,
+        <choose>
+            <when test="hour == 1">
+                t.send_time_hour AS sendTime,
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.send_time_day,'%Y-%m-%d') AS sendTime,
+            </otherwise>
+        </choose>
+        sum(t.send_num) AS sendSum
+        From ${tableName} t
+        WHERE
+        t.send_time_day >= #{startDate} and t.send_time_day <![CDATA[<=]]> #{endDate}
+        <if test="mediaAccountId != null">
+            and t.media_account_id = #{mediaAccountId}
+        </if>
+        GROUP BY t.media_account_id, sendTime;
+    </select>
+
+
+
+
+    <select id="queryActiveMediaSmsAccount"
+            resultType="com.citc.nce.dataStatistics.dto.AccountStatisticsInfo">
+        SELECT
+        COUNT(distinct t.media_account_id) AS sum,
+        <choose>
+            <when test="hour == 1">
+                t.send_time_hour AS activeTime
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.send_time_day,'%Y-%m-%d') AS activeTime
+            </otherwise>
+        </choose>
+        From ${tableName} t
+        WHERE
+        t.send_time_day >= #{startDate} and t.send_time_day <![CDATA[<=]]> #{endDate}
+        <if test="accountList != null">
+            and t.media_account_id in
+            <foreach item ="id" collection="accountList" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY activeTime;
+    </select>
+</mapper>

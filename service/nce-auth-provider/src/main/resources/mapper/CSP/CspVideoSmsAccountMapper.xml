@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.citc.nce.auth.csp.videoSms.account.dao.CspVideoSmsAccountDao">
+
+    <select id="queryList" resultType="com.citc.nce.auth.csp.videoSms.account.vo.CspVideoSmsAccountResp">
+        select
+        t1.id,
+        t1.account_id,
+        t1.account_name,
+        t1.customer_id,
+        t1.dict_code,
+        t1.dict_value,
+        t1.app_id,
+        t1.app_secret,
+        t1.status,
+        t1.deleted,
+        t1.create_time,
+        t1.update_time,
+        t1.creator,
+        t1.updater,
+        t1.residual_count,
+        t2.enterprise_name,
+        t2.enterprise_account_name
+        <include refid="mainSQL"/>
+        order by
+        t1.create_time desc
+        <if test="pageSize != null and pageSize > -1">
+            LIMIT
+            #{currentPage}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="queryListCount" resultType="java.lang.Long">
+        select count(*) <include refid="mainSQL"/>
+    </select>
+
+    <sql id="mainSQL">
+        from csp_video_sms_account t1
+            left join user_enterprise_identification t2 on t1.customer_id = t2.user_id
+        where
+        t1.deleted = 0
+        <if test='status != null and status > -1'>
+        and t1.status = #{status}
+        </if>
+        <if test='dictCode != null and dictCode != ""'>
+        and t1.dict_code  = #{dictCode}
+        </if>
+        <if test='customerId != null and customerId != ""'>
+            and t1.customer_id = #{customerId}
+        </if>
+        <if test='cspId != null '>
+            AND t1.csp_id  = #{cspId}
+        </if>
+        <if test='name != null and name != ""'>
+        and (t1.account_name like concat('%',#{name},'%')
+        or t2.enterprise_account_name like concat('%',#{name},'%'))
+        </if>
+    </sql>
+
+    <select id="checkNameUnique" resultType="java.lang.Long">
+        select count(*) from csp_video_sms_account
+        where
+        account_name = #{accountName}
+        <if test="id != null and id > 0">
+            and id != #{id}
+        </if>
+    </select>
+    <select id="queryListChatbotCount" resultType="java.lang.Long">
+        select count(*) <include refid="chatbotSQL"/>
+    </select>
+    <select id="queryListChatbot"
+            resultType="com.citc.nce.auth.csp.videoSms.account.vo.CspVideoSmsAccountChatbotResp">
+        select
+        t1.id,
+        t1.account_id,
+        t1.account_name,
+        t1.customer_id,
+        t1.status,
+        t1.deleted,
+        t1.create_time,
+        t1.update_time,
+        t1.creator,
+        t1.updater,
+        t1.residual_count
+        <include refid="chatbotSQL"/>
+        order by
+        t1.create_time desc
+        <if test="pageSize != null and pageSize > -1">
+            LIMIT
+            #{currentPage}, #{pageSize}
+        </if>
+    </select>
+    <select id="selectAccount"
+            resultType="com.citc.nce.auth.prepayment.vo.VideoSmsMessageAccountListVo">
+        select account.account_name,
+               account.account_id,
+               account.dict_code,
+               account.status,
+               account.create_time,
+               account.customer_id,
+               uei.enterprise_name,
+               uei.enterprise_account_name,
+               round(sum(cast(po.amount as decimal(10,2))),2)       as totalOrderAmount,
+               round(sum(cast(po.refund as decimal(10,2))),2)       as totalOrderRefund,
+               sum(detail.total_amount)  as totalLimit,
+               sum(detail.available_amount) as totalUsable,
+               tariff.tariff_content  as tariffContent
+        from csp_video_sms_account account
+                 left join prepayment_order po
+                           on po.msg_type = 2
+                               and account.account_id = po.account_id
+                               and po.pay_time is not null
+                 left join prepayment_order_detail detail
+                           on detail.order_id = po.order_id
+                 left join user_enterprise_identification uei
+                           on account.customer_id = uei.user_id
+                 left join charge_tariff tariff on tariff.batch = account.tariff_batch
+        where account.deleted = 0
+          <if test="cspId != null and cspId != ''">
+              and account.csp_id = #{cspId}
+          </if>
+        <if test="customerId != null and customerId != ''">
+            and account.customer_id = #{customerId}
+        </if>
+        <if test='status != null and status > -1'>
+            and account.status = #{status}
+        </if>
+        <if test='accountName != null and accountName != ""'>
+            and account.account_name like concat('%',#{accountName},'%')
+        </if>
+        <if test='dictCode != null and dictCode != ""'>
+            and account.dict_code  = #{dictCode}
+        </if>
+        <if test='name != null and name != ""'>
+            and uei.enterprise_account_name like concat('%',#{name},'%')
+        </if>
+        group by account.account_name,
+                 account.account_id,
+                 account.status,
+                 account.create_time,
+                 uei.enterprise_name,
+                 uei.enterprise_account_name,
+                 tariff.tariff_content;
+    </select>
+    <select id="selectPlanVideoSmsAccount" resultType="com.citc.nce.auth.prepayment.vo.VideoSmsMessageAccountListVo">
+        select account.account_name,
+        account.account_id,
+        sum(detail.available_amount) as totalUsable
+        from csp_video_sms_account account
+            left join prepayment_order po on po.msg_type = 2 and account.account_id = po.account_id and po.pay_time is not null
+            left join prepayment_order_detail detail on detail.order_id = po.order_id
+        where account.deleted = 0 and account.customer_id = #{customerId} and account.account_id = #{accountIds}
+        group by account.account_name, account.account_id
+        order by account.create_time DESC;
+    </select>
+    <sql id="chatbotSQL">
+        from csp_video_sms_account t1
+        where
+        t1.deleted = 0
+        <if test='status != null and status > -1'>
+            and t1.status = #{status}
+        </if>
+        <if test='name != null and name > ""'>
+            and t1.account_name like concat('%',#{name}, '%')
+        </if>
+        <if test='customerId != null and customerId != ""'>
+            and t1.customer_id = #{customerId}
+        </if>
+    </sql>
+</mapper>
