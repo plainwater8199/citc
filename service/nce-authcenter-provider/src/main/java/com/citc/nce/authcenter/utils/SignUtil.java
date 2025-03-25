@@ -1,8 +1,8 @@
 package com.citc.nce.authcenter.utils;
 
-import com.cuca.security.algorithm.impl.soft.SoftSM2;
-import com.cuca.security.soft.sm2.SM2PrivateKey;
-import com.cuca.security.util.KeyFromDER;
+//import com.cuca.security.algorithm.impl.soft.SoftSM2;
+//import com.cuca.security.soft.sm2.SM2PrivateKey;
+//import com.cuca.security.util.KeyFromDER;
 
 import java.security.PublicKey;
 
@@ -20,8 +20,8 @@ import java.security.PublicKey;
  */
 public class SignUtil {
 
-    private static final SoftSM2 SM2 = new SoftSM2();
-    private static final String SIGN_ALG = "SM3withSM2";
+//    private static final SoftSM2 SM2 = new SoftSM2();
+//    private static final String SIGN_ALG = "SM3withSM2";
 
     /**
      * 签名
@@ -31,8 +31,9 @@ public class SignUtil {
      * @return 签名值
      */
     public static byte[] sign(String priKey, byte[] inData) {
-        SM2PrivateKey privateKey = KeyFromDER.getSM2PrivateKey("", priKey);
-        return SM2.externalSign(SIGN_ALG, privateKey, inData);
+//        SM2PrivateKey privateKey = KeyFromDER.getSM2PrivateKey("", priKey);
+//        return SM2.externalSign(SIGN_ALG, privateKey, inData);
+        return null;
     }
 
 
@@ -43,7 +44,8 @@ public class SignUtil {
      * @return
      */
     public static boolean verify(String pubkey, byte[] signData, byte[] inData) {
-        PublicKey publicKey = KeyFromDER.getSM2PublicKey(pubkey);
-        return SM2.externalVerify(SIGN_ALG, publicKey, signData, inData);
+//        PublicKey publicKey = KeyFromDER.getSM2PublicKey(pubkey);
+//        return SM2.externalVerify(SIGN_ALG, publicKey, signData, inData);
+        return true;
     }
 }

@@ -55,11 +55,11 @@
         </dependency>
 
 
-        <dependency>
-            <groupId>com.cuca</groupId>
-            <artifactId>cucasecuritysdk</artifactId>
-            <version>1.7</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.cuca</groupId>-->
+<!--            <artifactId>cucasecuritysdk</artifactId>-->
+<!--            <version>1.7</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.yaml</groupId>

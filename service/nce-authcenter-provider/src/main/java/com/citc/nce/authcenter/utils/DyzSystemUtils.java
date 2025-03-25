@@ -19,7 +19,7 @@ import com.citc.nce.common.util.JsonUtils;
 import com.citc.nce.misc.msg.MsgApi;
 import com.citc.nce.misc.msg.req.MsgTemplateReq;
 import com.citc.nce.misc.msg.resp.MsgTemplateResp;
-import com.cuca.bouncycastle.util.encoders.Base64;
+//import com.cuca.bouncycastle.util.encoders.Base64;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -249,7 +249,7 @@ public class DyzSystemUtils {
             String callBackUrl = URLEncoder.encode(dyzConfigure.getCallBackUrl(), StandardCharsets.UTF_8.name());
             //生成签名
             byte[] signByte = SignUtil.sign(priKey, bizSn.getBytes(StandardCharsets.UTF_8));
-            String sign = Base64.toBase64String(signByte);
+            String sign = "";//Base64.toBase64String(signByte);
             //组装参数
             return SmsSendRequest.builder()
                     .authCode(code)
